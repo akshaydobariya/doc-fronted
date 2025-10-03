@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthcare Appointment Booking Widget - Embed Examples</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.5rem;
+            font-weight: 800;
+        }
+
+        .examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .example-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .example-card h2 {
+            color: #1F2937;
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+
+        .example-card p {
+            color: #6B7280;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .widget-container {
+            border: 2px solid #E5E7EB;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #F9FAFB;
+            min-height: 500px;
+        }
+
+        iframe {
+            width: 100%;
+            height: 700px;
+            border: none;
+            display: block;
+        }
+
+        .code-block {
+            background: #1F2937;
+            color: #F9FAFB;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .copy-btn {
+            background: #0EA5E9;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #0284C7;
+            transform: translateY(-2px);
+        }
+
+        .info-section {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+
+        .info-section h2 {
+            color: #1F2937;
+            margin-bottom: 15px;
+        }
+
+        .info-section ul {
+            color: #6B7280;
+            line-height: 2;
+            padding-left: 20px;
+        }
+
+        .info-section code {
+            background: #F3F4F6;
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: #EF4444;
+            font-family: 'Courier New', monospace;
+        }
+
+        .params-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .params-table th,
+        .params-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .params-table th {
+            background: #F9FAFB;
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .params-table td {
+            color: #6B7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 Healthcare Appointment Booking Widget</h1>
+
+        <!-- Info Section -->
+        <div class="info-section">
+            <h2>📘 How to Embed</h2>
+            <p>You can embed the appointment booking widget on your website in multiple ways:</p>
+            <ul>
+                <li><strong>iFrame Embed:</strong> Simple integration using an iframe tag</li>
+                <li><strong>Direct Integration:</strong> Include as a React component in your app</li>
+                <li><strong>Modal/Popup:</strong> Open the widget in a modal dialog</li>
+            </ul>
+
+            <h2 style="margin-top: 30px;">⚙️ Configuration Parameters</h2>
+            <table class="params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Default</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>apiUrl</code></td>
+                        <td>string</td>
+                        <td>localhost:5000/api</td>
+                        <td>Your backend API URL</td>
+                    </tr>
+                    <tr>
+                        <td><code>theme</code></td>
+                        <td>light | dark</td>
+                        <td>light</td>
+                        <td>Widget color theme</td>
+                    </tr>
+                    <tr>
+                        <td><code>primaryColor</code></td>
+                        <td>string</td>
+                        <td>#0EA5E9</td>
+                        <td>Primary brand color (hex)</td>
+                    </tr>
+                    <tr>
+                        <td><code>compact</code></td>
+                        <td>boolean</td>
+                        <td>false</td>
+                        <td>Use compact layout</td>
+                    </tr>
+                    <tr>
+                        <td><code>doctorId</code></td>
+                        <td>string</td>
+                        <td>null</td>
+                        <td>Pre-select a doctor</td>
+                    </tr>
+                    <tr>
+                        <td><code>showHeader</code></td>
+                        <td>boolean</td>
+                        <td>true</td>
+                        <td>Show section headers</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Examples -->
+        <div class="examples">
+            <!-- Example 1: Default Light Theme -->
+            <div class="example-card">
+                <h2>Default Light Theme</h2>
+                <p>Standard widget with light theme and default cyan color</p>
+                <div class="widget-container">
+                    <iframe src="/widget?theme=light&primaryColor=%230EA5E9"></iframe>
+                </div>
+                <div class="code-block">
+&lt;iframe
+  src="http://yoursite.com/widget?theme=light&primaryColor=%230EA5E9"
+  width="100%"
+  height="700px"
+  frameborder="0"
+&gt;&lt;/iframe&gt;
+                </div>
+                <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+            </div>
+
+            <!-- Example 2: Dark Theme -->
+            <div class="example-card">
+                <h2>Dark Theme</h2>
+                <p>Widget with dark theme and purple accent color</p>
+                <div class="widget-container">
+                    <iframe src="/widget?theme=dark&primaryColor=%238B5CF6"></iframe>
+                </div>
+                <div class="code-block">
+&lt;iframe
+  src="http://yoursite.com/widget?theme=dark&primaryColor=%238B5CF6"
+  width="100%"
+  height="700px"
+  frameborder="0"
+&gt;&lt;/iframe&gt;
+                </div>
+                <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+            </div>
+
+            <!-- Example 3: Compact Version -->
+            <div class="example-card">
+                <h2>Compact Version</h2>
+                <p>Smaller widget perfect for sidebar integration</p>
+                <div class="widget-container">
+                    <iframe src="/widget?compact=true&primaryColor=%2310B981" style="height: 600px;"></iframe>
+                </div>
+                <div class="code-block">
+&lt;iframe
+  src="http://yoursite.com/widget?compact=true&primaryColor=%2310B981"
+  width="100%"
+  height="600px"
+  frameborder="0"
+&gt;&lt;/iframe&gt;
+                </div>
+                <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+            </div>
+
+            <!-- Example 4: Custom Brand Color -->
+            <div class="example-card">
+                <h2>Custom Brand Color</h2>
+                <p>Widget styled with your brand's primary color</p>
+                <div class="widget-container">
+                    <iframe src="/widget?theme=light&primaryColor=%23EF4444"></iframe>
+                </div>
+                <div class="code-block">
+&lt;iframe
+  src="http://yoursite.com/widget?theme=light&primaryColor=%23EF4444"
+  width="100%"
+  height="700px"
+  frameborder="0"
+&gt;&lt;/iframe&gt;
+                </div>
+                <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+            </div>
+        </div>
+
+        <!-- JavaScript Integration Example -->
+        <div class="info-section">
+            <h2>💻 JavaScript Integration Example</h2>
+            <p>For more control, you can use JavaScript to dynamically create and manage the widget:</p>
+            <div class="code-block">
+&lt;!-- Button to trigger widget --&gt;
+&lt;button id="book-appointment"&gt;Book Appointment&lt;/button&gt;
+
+&lt;!-- Modal container --&gt;
+&lt;div id="widget-modal" style="display: none;"&gt;
+  &lt;iframe
+    id="appointment-widget"
+    width="100%"
+    height="700px"
+    frameborder="0"
+  &gt;&lt;/iframe&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+  // Configuration
+  const config = {
+    apiUrl: 'https://your-api.com/api',
+    theme: 'light',
+    primaryColor: '#0EA5E9'
+  };
+
+  // Build widget URL
+  const widgetUrl = `http://yoursite.com/widget?` +
+    `apiUrl=${encodeURIComponent(config.apiUrl)}&` +
+    `theme=${config.theme}&` +
+    `primaryColor=${encodeURIComponent(config.primaryColor)}`;
+
+  // Show widget on button click
+  document.getElementById('book-appointment').addEventListener('click', function() {
+    const modal = document.getElementById('widget-modal');
+    const iframe = document.getElementById('appointment-widget');
+    iframe.src = widgetUrl;
+    modal.style.display = 'block';
+  });
+
+  // Listen for booking completion
+  window.addEventListener('message', function(event) {
+    if (event.data.type === 'APPOINTMENT_BOOKED') {
+      console.log('Appointment booked:', event.data.data);
+      // Close modal, show success message, etc.
+      document.getElementById('widget-modal').style.display = 'none';
+    }
+  });
+&lt;/script&gt;
+            </div>
+            <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+        </div>
+
+        <!-- React Integration -->
+        <div class="info-section">
+            <h2>⚛️ React Component Integration</h2>
+            <p>If you're using React, you can import the widget component directly:</p>
+            <div class="code-block">
+import AppointmentWidget from './components/widget/AppointmentWidget';
+
+function MyApp() {
+  const handleBookingComplete = (appointment) => {
+    console.log('Booking completed!', appointment);
+    // Show success message, redirect, etc.
+  };
+
+  return (
+    &lt;AppointmentWidget
+      apiUrl="https://your-api.com/api"
+      theme="light"
+      primaryColor="#0EA5E9"
+      compact={false}
+      showHeader={true}
+      onBookingComplete={handleBookingComplete}
+    /&gt;
+  );
+}
+            </div>
+            <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+        </div>
+    </div>
+
+    <script>
+        function copyCode(button) {
+            const codeBlock = button.previousElementSibling;
+            const code = codeBlock.textContent;
+
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = button.textContent;
+                button.textContent = '✓ Copied!';
+                button.style.background = '#10B981';
+
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '#0EA5E9';
+                }, 2000);
+            });
+        }
+
+        // Listen for messages from iframe
+        window.addEventListener('message', function(event) {
+            if (event.data.type === 'APPOINTMENT_BOOKED') {
+                console.log('Appointment booked in iframe:', event.data.data);
+                alert('✅ Appointment successfully booked!\nBooking ID: ' + event.data.data._id);
+            }
+        });
+    </script>
+</body>
+</html>
