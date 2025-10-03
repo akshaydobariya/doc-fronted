@@ -1,13 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
-import { useAuth } from '../contexts/AuthContext';
 import { CircularProgress, Container, Typography, Box } from '@mui/material';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { checkAuth } = useAuth();
   const hasProcessed = useRef(false);
   const [status, setStatus] = useState('Authenticating...');
 
@@ -25,20 +23,28 @@ const AuthCallback = () => {
 
         try {
           setStatus('Authenticating with Google...');
-          await api.post('/api/auth/google/callback', {
+          const response = await api.post('/api/auth/google/callback', {
             code,
             state
           });
+
+          console.log('Auth callback response:', response.data);
+          console.log('Response headers:', response.headers);
+
+          // Store user data in localStorage as backup
+          if (response.data.user) {
+            localStorage.setItem('user', JSON.stringify(response.data.user));
+          }
 
           if (state === 'doctor') {
             setStatus('Setting up your calendar...');
             // Give backend time to setup webhook and sync
             await new Promise(resolve => setTimeout(resolve, 2000));
-            setStatus('Loading dashboard...');
           }
 
-          await checkAuth();
-          navigate(state === 'doctor' ? '/doctor/dashboard' : '/client/dashboard', { replace: true });
+          setStatus('Redirecting to dashboard...');
+          // Use window.location for full page reload to ensure cookies are set
+          window.location.href = state === 'doctor' ? '/doctor/dashboard' : '/client/dashboard';
         } catch (error) {
           console.error('Auth callback failed:', error);
           setStatus('Authentication failed. Redirecting...');

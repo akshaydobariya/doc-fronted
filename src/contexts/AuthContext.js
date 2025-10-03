@@ -15,10 +15,26 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await api.get('/api/auth/current-user');
       setUser(response.data.user);
+      // Update localStorage
+      localStorage.setItem('user', JSON.stringify(response.data.user));
     } catch (error) {
       console.error('Auth check failed:', error);
-      // Don't throw error, just set user to null
-      setUser(null);
+
+      // Fallback to localStorage if session failed
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          console.log('Using stored user from localStorage:', parsedUser.email);
+          setUser(parsedUser);
+        } catch (e) {
+          console.error('Failed to parse stored user:', e);
+          setUser(null);
+          localStorage.removeItem('user');
+        }
+      } else {
+        setUser(null);
+      }
     } finally {
       setLoading(false);
     }
@@ -37,9 +53,14 @@ export const AuthProvider = ({ children }) => {
     try {
       await api.post('/api/auth/logout');
       setUser(null);
+      localStorage.removeItem('user');
       window.location.href = '/login';
     } catch (error) {
       console.error('Logout failed:', error);
+      // Clear local state anyway
+      setUser(null);
+      localStorage.removeItem('user');
+      window.location.href = '/login';
     }
   };
 
