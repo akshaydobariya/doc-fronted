@@ -6,11 +6,12 @@ export const calendarService = {
     return data;
   },
 
-  generateSlots: async (startDate, endDate, appointmentTypeId) => {
+  generateSlots: async (startDate, endDate, appointmentTypeId, includeWeekends = false) => {
     const { data } = await api.post('/api/calendar/generate-slots', {
       startDate,
       endDate,
       appointmentTypeId,
+      includeWeekends,
     });
     return data;
   },
@@ -51,6 +52,11 @@ export const calendarService = {
 
   clearAllCalendarEvents: async () => {
     const { data } = await api.delete('/api/calendar/clear-all');
+    return data;
+  },
+
+  checkTodaySlots: async () => {
+    const { data } = await api.get('/api/calendar/check-today-slots');
     return data;
   },
 };

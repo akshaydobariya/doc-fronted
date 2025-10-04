@@ -16,7 +16,12 @@ import {
   OutlinedInput,
   Checkbox,
   ListItemText,
-  Divider
+  Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions
 } from '@mui/material';
 import {
   CalendarMonth as CalendarIcon,
@@ -36,6 +41,8 @@ const QuickSlotGenerator = ({ availability, onSlotsGenerated, showSnackbar }) =>
   const [blockedDates, setBlockedDates] = useState([]);
   const [newBlockedDate, setNewBlockedDate] = useState('');
   const [result, setResult] = useState(null);
+  const [weekendDialog, setWeekendDialog] = useState({ open: false, weekendDates: [] });
+  const [includeWeekends, setIncludeWeekends] = useState(false);
 
   const handleTypeChange = (event) => {
     const value = event.target.value;
@@ -62,6 +69,22 @@ const QuickSlotGenerator = ({ availability, onSlotsGenerated, showSnackbar }) =>
     setEndDate(end.toISOString().split('T')[0]);
   };
 
+  const checkForWeekendsInRange = (start, end) => {
+    const weekendDates = [];
+    const current = new Date(start);
+    const endDateObj = new Date(end);
+
+    while (current <= endDateObj) {
+      const dayOfWeek = current.getDay();
+      if (dayOfWeek === 0 || dayOfWeek === 6) {
+        weekendDates.push(new Date(current).toISOString().split('T')[0]);
+      }
+      current.setDate(current.getDate() + 1);
+    }
+
+    return weekendDates;
+  };
+
   const handleGenerateSlots = async () => {
     if (!startDate || !endDate) {
       showSnackbar('Please select start and end dates', 'warning');
@@ -78,6 +101,42 @@ const QuickSlotGenerator = ({ availability, onSlotsGenerated, showSnackbar }) =>
       return;
     }
 
+    // Check if multiple days and has weekends
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const daysDifference = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+    const isSingleDay = daysDifference === 0;
+
+    // For single day, always proceed (including weekends)
+    if (isSingleDay) {
+      await proceedWithGeneration(true);
+      return;
+    }
+
+    // For multiple days, check for weekends
+    const weekendDates = checkForWeekendsInRange(start, end);
+
+    if (weekendDates.length > 0) {
+      // Show confirmation dialog
+      setWeekendDialog({
+        open: true,
+        weekendDates
+      });
+      return;
+    }
+
+    // No weekends, proceed
+    await proceedWithGeneration(false);
+  };
+
+  const handleWeekendDialogClose = (include) => {
+    setWeekendDialog({ open: false, weekendDates: [] });
+    if (include !== null) {
+      proceedWithGeneration(include);
+    }
+  };
+
+  const proceedWithGeneration = async (includeWeekends) => {
     try {
       setGenerating(true);
       setResult(null);
@@ -127,7 +186,8 @@ const QuickSlotGenerator = ({ availability, onSlotsGenerated, showSnackbar }) =>
         const response = await calendarService.generateSlots(
           new Date(startDate).toISOString(),
           new Date(endDate).toISOString(),
-          typeId
+          typeId,
+          includeWeekends
         );
 
         if (response.slots) {
@@ -414,6 +474,47 @@ const QuickSlotGenerator = ({ availability, onSlotsGenerated, showSnackbar }) =>
           </Alert>
         </Grid>
       </Grid>
+
+      {/* Weekend Confirmation Dialog */}
+      <Dialog
+        open={weekendDialog.open}
+        onClose={() => handleWeekendDialogClose(null)}
+      >
+        <DialogTitle>Weekend Dates Detected</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Your selected date range includes the following weekend dates:
+          </DialogContentText>
+          <Box sx={{ mt: 2, mb: 2 }}>
+            {weekendDialog.weekendDates.map((date) => {
+              const dateObj = new Date(date);
+              const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
+              return (
+                <Chip
+                  key={date}
+                  label={`${dayName}, ${dateObj.toLocaleDateString()}`}
+                  color="warning"
+                  sx={{ m: 0.5 }}
+                />
+              );
+            })}
+          </Box>
+          <DialogContentText>
+            Do you want to include these weekend dates when generating slots?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => handleWeekendDialogClose(null)} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={() => handleWeekendDialogClose(false)} variant="outlined" color="primary">
+            Skip Weekends
+          </Button>
+          <Button onClick={() => handleWeekendDialogClose(true)} variant="contained" color="primary">
+            Include Weekends
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   );
 };

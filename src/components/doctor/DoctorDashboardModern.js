@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Container,
   Grid,
@@ -60,6 +61,8 @@ import ModernCalendarView from './ModernCalendarView';
 
 const DoctorDashboardModern = () => {
   const { user, logout } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [activeView, setActiveView] = useState('dashboard');
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -81,6 +84,34 @@ const DoctorDashboardModern = () => {
     }
   }, [user]);
 
+  // Check URL parameters for slot generation requirement or initial check after login
+  useEffect(() => {
+    console.log('🔍 [URL CHECK] Checking URL parameters:', location.search);
+    const params = new URLSearchParams(location.search);
+    const view = params.get('view');
+    const needSlots = params.get('needSlots');
+    const checkSlots = params.get('checkSlots');
+
+    console.log('🔍 [URL CHECK] Parameters:', { view, needSlots, checkSlots });
+
+    if (view === 'generate' && needSlots === 'true') {
+      // Switch to generate view and show message
+      console.log('✅ [URL CHECK] Direct redirect to generate view');
+      setActiveView('generate');
+      showSnackbar('Please generate appointment slots for today', 'warning');
+      // Clean up URL
+      navigate('/doctor/dashboard', { replace: true });
+    } else if (checkSlots === 'true') {
+      // This comes from login - check slots after dashboard loads
+      console.log('✅ [URL CHECK] checkSlots=true detected - will run slot check after init');
+      // Clean up URL immediately
+      navigate('/doctor/dashboard', { replace: true });
+      // The actual check will run in initializeDashboard
+    } else {
+      console.log('ℹ️ [URL CHECK] No special parameters - normal dashboard load');
+    }
+  }, [location.search, navigate]);
+
   const initializeDashboard = async () => {
     try {
       setLoading(true);
@@ -89,10 +120,44 @@ const DoctorDashboardModern = () => {
         loadAppointments(),
         loadEvents(),
       ]);
+
+      // Check if doctor has today's slots (every time they load the dashboard)
+      await checkTodaySlots();
     } catch (error) {
       console.error('Dashboard initialization error:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkTodaySlots = async () => {
+    console.log('🔍 [SLOT CHECK] Starting today slots check...');
+
+    try {
+      console.log('🔍 [SLOT CHECK] Making API call to /api/calendar/check-today-slots');
+      const response = await calendarService.checkTodaySlots();
+      console.log('🔍 [SLOT CHECK] API Response:', response);
+
+      if (!response.hasTodaySlots) {
+        // Switch to generate view if no slots for today
+        console.log('⚠️ [SLOT CHECK] NO SLOTS FOUND - Switching to generate view');
+        console.log('⚠️ [SLOT CHECK] Setting activeView to: generate');
+        setActiveView('generate');
+        showSnackbar(`No slots found for today (${response.todayDate}). Please generate slots.`, 'warning');
+        console.log('✅ [SLOT CHECK] Redirect complete');
+      } else {
+        console.log(`✅ [SLOT CHECK] Found ${response.slotsCount} slots for today - staying on current view`);
+      }
+    } catch (error) {
+      console.error('❌ [SLOT CHECK] ERROR checking slots:', error);
+      console.error('❌ [SLOT CHECK] Error status:', error.response?.status);
+      console.error('❌ [SLOT CHECK] Error response:', error.response?.data);
+
+      // If there's an error, redirect to generate tab to be safe
+      console.log('⚠️ [SLOT CHECK] Error occurred - switching to generate view as precaution');
+      setActiveView('generate');
+      showSnackbar('Unable to verify today\'s slots. Please check and generate if needed.', 'warning');
+      console.log('✅ [SLOT CHECK] Error redirect complete');
     }
   };
 
@@ -627,6 +692,7 @@ const DoctorDashboardModern = () => {
                 await loadEvents();
                 showSnackbar('Slots generated successfully', 'success');
               }}
+              showSnackbar={showSnackbar}
             />
         )}
 

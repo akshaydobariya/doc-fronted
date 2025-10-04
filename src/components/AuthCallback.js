@@ -44,7 +44,12 @@ const AuthCallback = () => {
 
           setStatus('Redirecting to dashboard...');
           // Use window.location for full page reload to ensure cookies are set
-          window.location.href = state === 'doctor' ? '/doctor/dashboard' : '/client/dashboard';
+          // For doctors, add checkSlots parameter so dashboard can check after loading
+          if (state === 'doctor') {
+            window.location.href = '/doctor/dashboard?checkSlots=true';
+          } else {
+            window.location.href = '/client/dashboard';
+          }
         } catch (error) {
           console.error('Auth callback failed:', error);
           setStatus('Authentication failed. Redirecting...');
