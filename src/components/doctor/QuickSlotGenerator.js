@@ -160,29 +160,27 @@ const QuickSlotGenerator = ({ availability, onSlotsGenerated, showSnackbar }) =>
       // Generate slots for each selected type
       let totalGenerated = 0;
       const allSlots = [];
+      const useCustomHours = startTime !== '09:00' || endTime !== '17:00';
 
+      // OPTIMIZATION: Apply custom hours to ALL selected types at once (not in loop)
+      if (useCustomHours) {
+        const updatedTypes = availability.appointmentTypes.map(t => {
+          if (selectedTypes.includes(t._id)) {
+            return {
+              ...t,
+              timeRestrictions: [{ startTime, endTime }]
+            };
+          }
+          return t;
+        });
+        await availabilityService.updateAppointmentTypes(updatedTypes);
+      }
+
+      // Generate slots for each type (no updateAppointmentTypes calls in loop)
       for (const typeId of selectedTypes) {
         const type = availability.appointmentTypes.find(t => t._id === typeId);
         if (!type) continue;
 
-        // Create temporary time restriction if custom hours specified
-        const useCustomHours = startTime !== '09:00' || endTime !== '17:00';
-
-        if (useCustomHours) {
-          // Update appointment type with temporary time restriction
-          const updatedTypes = availability.appointmentTypes.map(t => {
-            if (t._id === typeId) {
-              return {
-                ...t,
-                timeRestrictions: [{ startTime, endTime }]
-              };
-            }
-            return t;
-          });
-          await availabilityService.updateAppointmentTypes(updatedTypes);
-        }
-
-        // Generate slots
         const response = await calendarService.generateSlots(
           new Date(startDate).toISOString(),
           new Date(endDate).toISOString(),
@@ -194,20 +192,20 @@ const QuickSlotGenerator = ({ availability, onSlotsGenerated, showSnackbar }) =>
           totalGenerated += response.slots.length;
           allSlots.push(...response.slots);
         }
+      }
 
-        // Remove temporary time restriction if added
-        if (useCustomHours) {
-          const originalTypes = availability.appointmentTypes.map(t => {
-            if (t._id === typeId) {
-              return {
-                ...t,
-                timeRestrictions: []
-              };
-            }
-            return t;
-          });
-          await availabilityService.updateAppointmentTypes(originalTypes);
-        }
+      // OPTIMIZATION: Remove custom hours from ALL types at once (not in loop)
+      if (useCustomHours) {
+        const originalTypes = availability.appointmentTypes.map(t => {
+          if (selectedTypes.includes(t._id)) {
+            return {
+              ...t,
+              timeRestrictions: []
+            };
+          }
+          return t;
+        });
+        await availabilityService.updateAppointmentTypes(originalTypes);
       }
 
       setResult({
@@ -215,7 +213,10 @@ const QuickSlotGenerator = ({ availability, onSlotsGenerated, showSnackbar }) =>
         slots: allSlots
       });
 
-      onSlotsGenerated();
+      // OPTIMIZATION: Only call callback once at the end
+      if (onSlotsGenerated) {
+        onSlotsGenerated();
+      }
       showSnackbar(`Generated ${totalGenerated} slots successfully!`, 'success');
     } catch (error) {
       console.error('Generate slots error:', error);
