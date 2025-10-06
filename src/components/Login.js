@@ -139,38 +139,6 @@ const Login = () => {
             >
               Login as Doctor
             </Button>
-
-            <Button
-              variant="outlined"
-              size="large"
-              fullWidth
-              startIcon={<PersonIcon />}
-              onClick={() => login('client')}
-              sx={{
-                py: 2,
-                fontSize: '1.1rem',
-                fontWeight: 600,
-                textTransform: 'none',
-                borderRadius: 3,
-                borderWidth: 2,
-                borderColor: alpha(theme.palette.primary.main, 0.5),
-                color: theme.palette.text.primary,
-                backgroundColor: alpha(theme.palette.common.white, 0.8),
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                '&:hover': {
-                  borderWidth: 2,
-                  borderColor: theme.palette.primary.main,
-                  backgroundColor: alpha(theme.palette.common.white, 0.95),
-                  transform: 'translateY(-3px)',
-                  boxShadow: '0 12px 28px rgba(99, 102, 241, 0.2)',
-                },
-                '&:active': {
-                  transform: 'translateY(-1px)',
-                },
-              }}
-            >
-              Login as Patient
-            </Button>
           </Stack>
 
           {/* Footer Text */}

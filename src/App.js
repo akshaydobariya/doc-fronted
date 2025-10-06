@@ -7,8 +7,6 @@ import theme from './theme/theme';
 import Login from './components/Login';
 import AuthCallback from './components/AuthCallback';
 import DoctorDashboard from './components/doctor/DoctorDashboardModern';
-import PatientDashboard from './components/client/PatientDashboard';
-import PatientBookingFlow from './components/client/PatientBookingFlow';
 import AppointmentBooking from './components/client/AppointmentBooking';
 import WidgetPage from './pages/WidgetPage';
 import PrivateRoute from './components/PrivateRoute';
@@ -28,19 +26,11 @@ function App() {
             />
             <Route
               path="/client/dashboard"
-              element={<PrivateRoute component={PatientDashboard} roles={['client']} />}
-            />
-            <Route
-              path="/client/old-dashboard"
               element={<PrivateRoute component={AppointmentBooking} roles={['client']} />}
             />
             <Route
               path="/book-appointment"
               element={<PrivateRoute component={AppointmentBooking} roles={['client']} />}
-            />
-            <Route
-              path="/book-appointment-v2"
-              element={<PrivateRoute component={PatientBookingFlow} roles={['client']} />}
             />
             {/* Public Widget Route - No Authentication Required */}
             <Route path="/widget" element={<WidgetPage />} />
