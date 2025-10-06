@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Paper,
   Typography,
@@ -36,6 +36,13 @@ const AvailabilitySettings = ({ availability, onUpdate, showSnackbar }) => {
   const [editingType, setEditingType] = useState(null);
   const [openBlockedDialog, setOpenBlockedDialog] = useState(false);
   const [newBlocked, setNewBlocked] = useState({ startTime: '', endTime: '', reason: '' });
+
+  // Update local state when availability prop changes
+  useEffect(() => {
+    if (availability) {
+      setEditingAvailability(availability);
+    }
+  }, [availability]);
 
   const handleDayToggle = (dayIndex) => {
     const updated = editingAvailability.standardAvailability.map(day =>

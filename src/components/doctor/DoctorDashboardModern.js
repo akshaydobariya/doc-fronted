@@ -84,6 +84,13 @@ const DoctorDashboardModern = () => {
     }
   }, [user]);
 
+  // Reload events when availability changes (to update blocked slots)
+  useEffect(() => {
+    if (availability && events.length > 0) {
+      loadEvents(availability);
+    }
+  }, [availability?.blockedSlots]);
+
   // Check URL parameters for slot generation requirement or initial check after login
   useEffect(() => {
     console.log('🔍 [URL CHECK] Checking URL parameters:', location.search);
@@ -115,10 +122,11 @@ const DoctorDashboardModern = () => {
   const initializeDashboard = async () => {
     try {
       setLoading(true);
+      // Load availability first, then load events and appointments
+      const availData = await loadAvailability();
       await Promise.all([
-        loadAvailability(),
         loadAppointments(),
-        loadEvents(),
+        loadEvents(availData),
       ]);
 
       // Check if doctor has today's slots (every time they load the dashboard)
@@ -165,13 +173,15 @@ const DoctorDashboardModern = () => {
     try {
       const availData = await availabilityService.getAvailability();
       setAvailability(availData.availability);
+      return availData.availability;
     } catch (error) {
       const initData = await availabilityService.initialize();
       setAvailability(initData.availability);
+      return initData.availability;
     }
   };
 
-  const loadEvents = async () => {
+  const loadEvents = async (availabilityData = null) => {
     try {
       const { appointments: appts } = await appointmentService.getAppointments();
       const formattedEvents = appts
@@ -185,7 +195,24 @@ const DoctorDashboardModern = () => {
           borderColor: getStatusColor(apt.status),
           extendedProps: { appointment: apt },
         }));
-      setEvents(formattedEvents);
+
+      // Add blocked slots to calendar
+      const currentAvailability = availabilityData || availability;
+      const blockedEvents = (currentAvailability?.blockedSlots || []).map((slot, index) => ({
+        id: `blocked-${slot._id || index}`,
+        title: `🚫 ${slot.reason || 'Blocked'}`,
+        start: new Date(slot.startTime),
+        end: new Date(slot.endTime),
+        backgroundColor: '#EF4444',
+        borderColor: '#DC2626',
+        display: 'background',
+        extendedProps: {
+          blocked: true,
+          reason: slot.reason
+        },
+      }));
+
+      setEvents([...formattedEvents, ...blockedEvents]);
     } catch (error) {
       console.error('Load events error:', error);
     }
@@ -528,7 +555,7 @@ const DoctorDashboardModern = () => {
                     title="Today's Appointments"
                     value={stats.today}
                     color="#6366F1"
-                    trend="+12%"
+                    
                   />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
@@ -537,7 +564,7 @@ const DoctorDashboardModern = () => {
                     title="This Week"
                     value={stats.thisWeek}
                     color="#10B981"
-                    trend="+8%"
+                  
                   />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
@@ -546,7 +573,7 @@ const DoctorDashboardModern = () => {
                     title="This Month"
                     value={stats.thisMonth}
                     color="#F59E0B"
-                    trend="+24%"
+                 
                   />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
@@ -706,9 +733,10 @@ const DoctorDashboardModern = () => {
             <AvailabilitySettings
               availability={availability}
               onUpdate={async () => {
-                await loadAvailability();
-                showSnackbar('Settings updated successfully', 'success');
+                const updatedAvailability = await loadAvailability();
+                await loadEvents(updatedAvailability);
               }}
+              showSnackbar={showSnackbar}
             />
         )}
       </Container>
