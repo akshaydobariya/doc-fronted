@@ -28,7 +28,9 @@
   },
   "scripts": {
     "start": "destack -d \"react-scripts start\"",
-    "build": "destack -b \"react-scripts build\"",
+    "build": "npm run build:check-data && destack -b \"react-scripts build\"",
+    "build:production": "react-scripts build",
+    "build:check-data": "node -e \"const fs = require('fs'); const path = require('path'); if (!fs.existsSync('data')) fs.mkdirSync('data', {recursive: true}); if (!fs.existsSync('data/default.json')) fs.writeFileSync('data/default.json', JSON.stringify({root:{type:{resolvedName:'Container'},isCanvas:true,props:{},displayName:'Container',custom:{},hidden:false,nodes:[],linkedNodes:{}}}, null, 2));\"",
     "start:original": "react-scripts start",
     "build:original": "react-scripts build",
     "test": "react-scripts test",
