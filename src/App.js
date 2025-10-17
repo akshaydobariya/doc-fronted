@@ -10,6 +10,9 @@ import DoctorDashboard from './components/doctor/DoctorDashboardModern';
 import AppointmentBooking from './components/client/AppointmentBooking';
 import WidgetPage from './pages/WidgetPage';
 import PrivateRoute from './components/PrivateRoute';
+import SimpleDragDropBuilder from './components/website/SimpleDragDropBuilder';
+import WebsiteManager from './components/website/WebsiteManager';
+import SimpleLandingPage from './pages/SimpleLandingPage';
 
 function App() {
   return (
@@ -34,6 +37,20 @@ function App() {
             />
             {/* Public Widget Route - No Authentication Required */}
             <Route path="/widget" element={<WidgetPage />} />
+
+            {/* Website Management Routes - Protected for doctors/admins */}
+            <Route
+              path="/websites"
+              element={<PrivateRoute component={WebsiteManager} roles={['doctor']} />}
+            />
+            <Route
+              path="/full-destack-editor"
+              element={<PrivateRoute component={SimpleDragDropBuilder} roles={['doctor']} />}
+            />
+
+            {/* Public Landing Page - Built with Destack */}
+            <Route path="/landing" element={<SimpleLandingPage />} />
+
             <Route path="/" element={<Navigate to="/login" />} />
           </Routes>
         </AuthProvider>

@@ -14,7 +14,9 @@ import {
   DialogContentText,
   DialogActions
 } from '@mui/material';
-import axios from 'axios';
+import { calendarService } from '../services/calendarService';
+import { appointmentService } from '../services/appointmentService';
+import { availabilityService } from '../services/availabilityService';
 import { useAuth } from '../contexts/AuthContext';
 
 const ClientDashboard = () => {
@@ -33,10 +35,8 @@ const ClientDashboard = () => {
 
   const fetchDoctors = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/users/doctors', {
-        withCredentials: true
-      });
-      setDoctors(response.data.doctors);
+      const response = await availabilityService.getAllDoctors();
+      setDoctors(response.doctors);
     } catch (error) {
       console.error('Fetch doctors failed:', error);
     }
@@ -44,11 +44,8 @@ const ClientDashboard = () => {
 
   const fetchMyAppointments = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/appointments', {
-        params: { clientId: user.id },
-        withCredentials: true
-      });
-      setMyAppointments(response.data.appointments);
+      const response = await appointmentService.getAppointments();
+      setMyAppointments(response.appointments);
     } catch (error) {
       console.error('Fetch appointments failed:', error);
     }
@@ -60,15 +57,12 @@ const ClientDashboard = () => {
       const endDate = new Date();
       endDate.setMonth(endDate.getMonth() + 1);
 
-      const response = await axios.get('http://localhost:5000/api/calendar/slots', {
-        params: {
-          doctorId,
-          startDate: startDate.toISOString(),
-          endDate: endDate.toISOString()
-        },
-        withCredentials: true
-      });
-      setAvailableSlots(response.data.slots);
+      const response = await calendarService.getAvailableSlots(
+        doctorId,
+        startDate.toISOString(),
+        endDate.toISOString()
+      );
+      setAvailableSlots(response.slots);
     } catch (error) {
       console.error('Fetch slots failed:', error);
     }
@@ -86,11 +80,7 @@ const ClientDashboard = () => {
 
   const handleBookSlot = async () => {
     try {
-      await axios.post('http://localhost:5000/api/calendar/slots/book', {
-        slotId: selectedSlot._id
-      }, {
-        withCredentials: true
-      });
+      await calendarService.bookSlot(selectedSlot._id);
 
       setOpenConfirmDialog(false);
       setSelectedSlot(null);

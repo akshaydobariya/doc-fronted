@@ -23,7 +23,7 @@ const AuthCallback = () => {
 
         try {
           setStatus('Authenticating with Google...');
-          const response = await api.post('/api/auth/google/callback', {
+          const response = await api.post('auth/google/callback', {
             code,
             state
           });

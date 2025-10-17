@@ -45,6 +45,7 @@ import {
   AccessTime as TimeIcon,
   DeleteForever as DeleteForeverIcon,
   AutoAwesome as SparkleIcon,
+  Web as WebIcon,
 } from '@mui/icons-material';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -370,12 +371,17 @@ const DoctorDashboardModern = () => {
           { id: 'calendar', label: 'Calendar', icon: <CalendarIcon /> },
           { id: 'generate', label: 'Generate Slots', icon: <AddIcon /> },
           { id: 'appointments', label: 'Appointments', icon: <EventIcon /> },
+          { id: 'website', label: 'Website Builder', icon: <WebIcon /> },
           { id: 'settings', label: 'Settings', icon: <SettingsIcon /> },
         ].map((item) => (
           <ListItemButton
             key={item.id}
             onClick={() => {
-              setActiveView(item.id);
+              if (item.id === 'website') {
+                navigate('/websites');
+              } else {
+                setActiveView(item.id);
+              }
               setDrawerOpen(false);
             }}
             selected={activeView === item.id}
@@ -509,11 +515,18 @@ const DoctorDashboardModern = () => {
               { id: 'calendar', label: 'Calendar', icon: <CalendarIcon sx={{ fontSize: 20 }} /> },
               { id: 'generate', label: 'Generate Slots', icon: <AddIcon sx={{ fontSize: 20 }} /> },
               { id: 'appointments', label: 'Appointments', icon: <EventIcon sx={{ fontSize: 20 }} /> },
+              { id: 'website', label: 'Website Builder', icon: <WebIcon sx={{ fontSize: 20 }} /> },
               { id: 'settings', label: 'Settings', icon: <SettingsIcon sx={{ fontSize: 20 }} /> },
             ].map((item) => (
               <Button
                 key={item.id}
-                onClick={() => setActiveView(item.id)}
+                onClick={() => {
+                  if (item.id === 'website') {
+                    navigate('/websites');
+                  } else {
+                    setActiveView(item.id);
+                  }
+                }}
                 startIcon={item.icon}
                 variant={activeView === item.id ? 'contained' : 'text'}
                 sx={{

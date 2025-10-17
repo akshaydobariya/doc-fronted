@@ -13,27 +13,35 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuth = async () => {
     try {
-      const response = await api.get('/api/auth/current-user');
+      const response = await api.get('auth/current-user');
       setUser(response.data.user);
       // Update localStorage
       localStorage.setItem('user', JSON.stringify(response.data.user));
+      console.log('Auth check successful:', response.data.user.email);
     } catch (error) {
       console.error('Auth check failed:', error);
 
-      // Fallback to localStorage if session failed
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser);
-          console.log('Using stored user from localStorage:', parsedUser.email);
-          setUser(parsedUser);
-        } catch (e) {
-          console.error('Failed to parse stored user:', e);
-          setUser(null);
-          localStorage.removeItem('user');
-        }
-      } else {
+      // If we get 401, clear everything and don't fallback to localStorage
+      if (error.response?.status === 401) {
+        console.log('Session expired (401) - clearing stored user data');
         setUser(null);
+        localStorage.removeItem('user');
+      } else {
+        // For other errors (like network issues), fallback to localStorage
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          try {
+            const parsedUser = JSON.parse(storedUser);
+            console.log('Using stored user from localStorage (non-401 error):', parsedUser.email);
+            setUser(parsedUser);
+          } catch (e) {
+            console.error('Failed to parse stored user:', e);
+            setUser(null);
+            localStorage.removeItem('user');
+          }
+        } else {
+          setUser(null);
+        }
       }
     } finally {
       setLoading(false);
@@ -42,7 +50,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (role) => {
     try {
-      const response = await api.get(`/api/auth/google/url?role=${role}`);
+      const response = await api.get(`auth/google/url?role=${role}`);
       window.location.href = response.data.url;
     } catch (error) {
       console.error('Login failed:', error);
@@ -51,7 +59,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await api.post('/api/auth/logout');
+      await api.post('auth/logout');
       setUser(null);
       localStorage.removeItem('user');
       window.location.href = '/login';

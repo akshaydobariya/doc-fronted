@@ -25,9 +25,41 @@
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
     <title>React App</title>
+    <!-- Tailwind CSS for Destack components -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Destack editor styles -->
+    <style>
+      /* Ensure Destack editor has proper dimensions */
+      .destack-editor {
+        min-height: 100vh;
+        width: 100%;
+      }
+
+      /* Fix for drag and drop interface */
+      .destack-sidebar {
+        z-index: 1000;
+      }
+
+      /* Ensure components are visible */
+      .destack-component {
+        min-height: 20px;
+        border: 1px dashed transparent;
+      }
+
+      .destack-component:hover {
+        border-color: #3b82f6;
+      }
+
+      /* Full height for page builder */
+      #root > div {
+        min-height: 100vh;
+      }
+    </style>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
+    <!-- EMERGENCY DESTACK FIX - Must load before React bundle -->
+    <script src="%PUBLIC_URL%/destack-fix.js"></script>
     <div id="root"></div>
     <!--
       This HTML file is a template.

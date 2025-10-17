@@ -15,7 +15,7 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import axios from 'axios';
+import { calendarService } from '../services/calendarService';
 import { useAuth } from '../contexts/AuthContext';
 
 const DoctorDashboard = () => {
@@ -34,9 +34,7 @@ const DoctorDashboard = () => {
 
   const syncCalendar = async () => {
     try {
-      await axios.post('http://localhost:5000/api/calendar/sync', {}, {
-        withCredentials: true
-      });
+      await calendarService.syncCalendar();
     } catch (error) {
       console.error('Calendar sync failed:', error);
     }
@@ -48,16 +46,13 @@ const DoctorDashboard = () => {
       const endDate = new Date();
       endDate.setMonth(endDate.getMonth() + 1);
 
-      const response = await axios.get('http://localhost:5000/api/calendar/slots', {
-        params: {
-          doctorId: user.id,
-          startDate: startDate.toISOString(),
-          endDate: endDate.toISOString()
-        },
-        withCredentials: true
-      });
+      const response = await calendarService.getAvailableSlots(
+        user.id,
+        startDate.toISOString(),
+        endDate.toISOString()
+      );
 
-      const formattedEvents = response.data.slots.map(slot => ({
+      const formattedEvents = response.slots.map(slot => ({
         id: slot._id,
         title: slot.isAvailable ? `Available: ${slot.type}` : `Booked: ${slot.type}`,
         start: new Date(slot.startTime),
@@ -81,13 +76,11 @@ const DoctorDashboard = () => {
 
   const handleCreateSlot = async () => {
     try {
-      await axios.post('http://localhost:5000/api/calendar/slots', {
-        startTime: selectedSlot.start,
-        endTime: selectedSlot.end,
-        type: slotType
-      }, {
-        withCredentials: true
-      });
+      await calendarService.createSlot(
+        selectedSlot.start,
+        selectedSlot.end,
+        slotType
+      );
 
       setOpenSlotDialog(false);
       setSlotType('');
