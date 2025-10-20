@@ -13,6 +13,7 @@ import PrivateRoute from './components/PrivateRoute';
 import SimpleDragDropBuilder from './components/website/SimpleDragDropBuilder';
 import WebsiteManager from './components/website/WebsiteManager';
 import SimpleLandingPage from './pages/SimpleLandingPage';
+import ComponentTest from './components/website/ComponentTest';
 
 function App() {
   return (
@@ -50,6 +51,9 @@ function App() {
 
             {/* Public Landing Page - Built with Destack */}
             <Route path="/landing" element={<SimpleLandingPage />} />
+
+            {/* Test Component */}
+            <Route path="/test-components" element={<ComponentTest />} />
 
             <Route path="/" element={<Navigate to="/login" />} />
           </Routes>
