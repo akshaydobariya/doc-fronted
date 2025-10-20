@@ -1,51 +1,54 @@
-import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
-  Box,
-  Typography,
-  Button,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
+  Add as AddIcon,
+  ArrowBack as BackIcon,
+  Close as CloseIcon,
+  Delete as DeleteIcon,
+  DragIndicator as DragIcon,
+  Edit as EditIcon,
+  FilterList as FilterIcon,
+  Image as ImageIcon,
+  AutoAwesome as MagicIcon,
+  Preview as PreviewIcon,
+  Publish as PublishIcon,
+  Save as SaveIcon,
+  Search as SearchIcon,
+  Settings as SettingsIcon,
+  Palette as TemplateIcon,
+  TextFields as TextIcon,
+  CloudUpload as UploadIcon,
+  Visibility as VisibilityIcon
+} from '@mui/icons-material';
+import {
   Alert,
-  Snackbar,
-  CircularProgress,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Chip,
+  AppBar,
+  Box,
+  Button,
   Card,
   CardContent,
+  Chip,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
   Grid,
+  IconButton,
+  InputLabel,
+  MenuItem,
+  Paper,
+  Select,
+  Snackbar,
   Stack,
-  AppBar,
+  TextField,
   Toolbar,
-  Paper
+  Typography
 } from '@mui/material';
-import {
-  Save as SaveIcon,
-  Preview as PreviewIcon,
-  Settings as SettingsIcon,
-  ArrowBack as BackIcon,
-  Publish as PublishIcon,
-  FilterList as FilterIcon,
-  Search as SearchIcon,
-  Close as CloseIcon,
-  DragIndicator as DragIcon,
-  Delete as DeleteIcon,
-  Edit as EditIcon,
-  TextFields as TextIcon,
-  Visibility as VisibilityIcon,
-  Add as AddIcon,
-  Image as ImageIcon,
-  CloudUpload as UploadIcon
-} from '@mui/icons-material';
-import PageBuilderErrorBoundary from './PageBuilderErrorBoundary';
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import websiteService from '../../services/websiteService';
+import PageBuilderErrorBoundary from './PageBuilderErrorBoundary';
+import dentalWebsiteSections from '../../data/DENTAL_WEBSITE_SECTIONS';
 
 /**
  * Simple Drag Drop Builder - Clean implementation without Destack complications
@@ -88,21 +91,36 @@ const SimpleDragDropBuilder = () => {
 
   // Image upload state
   const [imageUploadDialogOpen, setImageUploadDialogOpen] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
   const [editingImageComponent, setEditingImageComponent] = useState(null);
+
+  // Template state
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [loadingTemplate, setLoadingTemplate] = useState(false);
+
+  // Debug effect to catch rendering errors
+  useEffect(() => {
+    console.log('SimpleDragDropBuilder rendered with states:', {
+      components: components?.length || 0,
+      filteredComponents: filteredComponents?.length || 0,
+      canvasComponents: canvasComponents?.length || 0,
+      dentalWebsiteTemplates: dentalWebsiteTemplates?.length || 0
+    });
+  });
 
   // Available categories and tags for dental practice
   const categories = [
     { value: 'all', label: 'All Components' },
+    { value: 'navigation', label: 'Header & Navigation' },
     { value: 'hero', label: 'Hero Sections' },
     { value: 'services', label: 'Dental Services' },
     { value: 'about', label: 'About Practice' },
     { value: 'team', label: 'Doctor & Team' },
+    { value: 'video', label: 'Video Sections' },
     { value: 'testimonials', label: 'Patient Reviews' },
     { value: 'gallery', label: 'Practice Gallery' },
     { value: 'appointments', label: 'Booking Forms' },
     { value: 'contact', label: 'Contact Info' },
-    { value: 'navigation', label: 'Navigation' },
     { value: 'education', label: 'Patient Education' }
   ];
 
@@ -122,17 +140,8 @@ const SimpleDragDropBuilder = () => {
   });
 
   useEffect(() => {
-    if (websiteId) {
-      loadWebsite();
-      loadComponents();
-    } else {
-      navigate('/websites');
-    }
-  }, [websiteId, navigate]);
-
-  useEffect(() => {
     // Filter components based on search term, category, and tags
-    let filtered = components;
+    let filtered = Array.isArray(components) ? components : [];
 
     if (searchTerm) {
       filtered = filtered.filter(comp =>
@@ -152,10 +161,19 @@ const SimpleDragDropBuilder = () => {
       );
     }
 
+    console.log('Filter applied:', {
+      totalComponents: components.length,
+      searchTerm,
+      selectedCategory,
+      selectedTags,
+      filteredCount: filtered.length
+    });
+    console.log('Filtered components:', filtered.slice(0, 3).map(c => ({ id: c.id, name: c.name, category: c.category })));
+
     setFilteredComponents(filtered);
   }, [components, searchTerm, selectedCategory, selectedTags]);
 
-  const loadWebsite = async () => {
+  const loadWebsite = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await websiteService.getWebsiteById(websiteId);
@@ -180,24 +198,33 @@ const SimpleDragDropBuilder = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [websiteId]);
 
-  const loadComponents = async () => {
+  const loadComponents = useCallback(async () => {
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-      const response = await fetch(`${apiUrl}/api/builder/components/full`);
+      console.log('Loading components...');
+      console.log('dentalWebsiteSections loaded:', dentalWebsiteSections?.length, 'sections');
 
-      if (response.ok) {
-        const componentsData = await response.json();
-        if (componentsData.components) {
-          setComponents(componentsData.components);
-          setFilteredComponents(componentsData.components);
-          return;
-        }
-      }
+      // Skip API call for now and use local dental components directly
+      // const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      // const response = await fetch(`${apiUrl}/builder/components/full`);
 
-      // Comprehensive dental-specific components
+      // if (response.ok) {
+      //   const componentsData = await response.json();
+      //   if (componentsData.components) {
+      //     console.log('API components loaded:', componentsData.components.length);
+      //     setComponents(componentsData.components);
+      //     setFilteredComponents(componentsData.components);
+      //     return;
+      //   }
+      // }
+
+      console.log('Using dental components...');
+
+      // Comprehensive dental-specific components including extracted HTML sections
       const dentalComponents = [
+        // Add the extracted HTML sections from Untitled-1.html
+        ...dentalWebsiteSections,
         // Hero Sections
         {
           id: 'dental-hero-main',
@@ -307,13 +334,28 @@ const SimpleDragDropBuilder = () => {
         }
       ];
 
+      console.log('Total dental components:', dentalComponents.length);
+      console.log('First 3 components:', dentalComponents.slice(0, 3).map(c => ({ id: c.id, name: c.name, category: c.category })));
+
       setComponents(dentalComponents);
       setFilteredComponents(dentalComponents);
+
+      console.log('Components set successfully');
     } catch (error) {
       console.error('Error loading components:', error);
       showSnackbar('Error loading components, using fallback', 'warning');
     }
-  };
+  }, []);
+
+  // Load website and components on mount
+  useEffect(() => {
+    if (websiteId) {
+      loadWebsite();
+      loadComponents();
+    } else {
+      navigate('/websites');
+    }
+  }, [websiteId, navigate, loadWebsite, loadComponents]);
 
   const showSnackbar = (message, severity = 'success') => {
     setSnackbar({ open: true, message, severity });
@@ -521,7 +563,6 @@ const SimpleDragDropBuilder = () => {
 
   const handleImageFileUpload = async (file) => {
     try {
-      setUploadingImage(true);
 
       // Create FormData for file upload
       const formData = new FormData();
@@ -560,8 +601,6 @@ const SimpleDragDropBuilder = () => {
     } catch (error) {
       console.error('Image upload error:', error);
       showSnackbar('Error uploading image: ' + error.message, 'error');
-    } finally {
-      setUploadingImage(false);
     }
   };
 
@@ -571,6 +610,224 @@ const SimpleDragDropBuilder = () => {
     const images = Array.from(doc.querySelectorAll('img'));
     return images.length > 0;
   };
+
+  // Template functions
+  const handleTemplateSelection = () => {
+    setTemplateDialogOpen(true);
+  };
+
+  const loadTemplate = async (template) => {
+    try {
+      setLoadingTemplate(true);
+      console.log('Loading template:', template);
+
+      // Clear existing canvas
+      setCanvasComponents([]);
+      setSelectedComponent(null);
+
+      // Load template components from layout (for dental templates) or fallback to components/sections
+      const sourceComponents = template.layout || template.components || template.sections || [];
+      console.log('Source components:', sourceComponents);
+
+      if (!Array.isArray(sourceComponents)) {
+        console.error('sourceComponents is not an array:', sourceComponents);
+        throw new Error('Invalid template structure: layout/components/sections must be an array');
+      }
+
+      // Transform template layout into canvas components
+      const templateComponents = sourceComponents.map((layoutItem, index) => {
+        // Handle dental template layout structure
+        if (layoutItem.component && layoutItem.id) {
+          return {
+            id: layoutItem.id,
+            name: layoutItem.id.split('-').map(word =>
+              word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' '),
+            category: template.category || 'template',
+            description: `${template.name} component`,
+            tags: template.tags || [],
+            component: layoutItem.component,
+            instanceId: index + 1,
+            position: { x: 0, y: index * 120 }
+          };
+        }
+
+        // Handle existing component structure
+        return {
+          ...layoutItem,
+          instanceId: index + 1,
+          position: { x: 0, y: index * 120 }
+        };
+      });
+
+      console.log('Template components loaded:', templateComponents);
+
+      setCanvasComponents(templateComponents);
+      setNextId(templateComponents.length + 1);
+
+      // Update global settings
+      setGlobalSettings({
+        siteName: template.siteName || template.name || '',
+        primaryColor: template.colors?.primary || template.primaryColor || '#4A90E2',
+        fontFamily: template.fontFamily || 'Inter, sans-serif'
+      });
+
+      setTemplateDialogOpen(false);
+      showSnackbar(`${template.name} template loaded successfully!`);
+    } catch (error) {
+      console.error('Template loading error:', error);
+      showSnackbar('Error loading template: ' + error.message, 'error');
+    } finally {
+      setLoadingTemplate(false);
+    }
+  };
+
+  // Complete dental website templates
+  const dentalWebsiteTemplates = [
+    {
+      id: 'modern-dental-clinic',
+      name: 'Modern Dental Clinic',
+      description: 'A clean, professional template perfect for general dental practices',
+      category: 'General Dentistry',
+      image: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=400&h=300&fit=crop',
+      tags: ['modern', 'clean', 'professional', 'general'],
+      components: [
+        'dental-hero-main',
+        'dental-services-comprehensive',
+        'dental-about-practice',
+        'dental-team-grid',
+        'dental-testimonials-slider',
+        'dental-appointment-form',
+        'dental-contact-footer'
+      ],
+      layout: [
+        {
+          id: 'dental-hero-main',
+          component: '<section class="relative bg-gradient-to-br from-blue-50 to-white py-20 lg:py-32"><div class="absolute inset-0 bg-white/50"></div><div class="relative container mx-auto px-4"><div class="grid lg:grid-cols-2 gap-12 items-center"><div class="text-center lg:text-left"><div class="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium mb-6">🦷 Professional Dental Care Since 2010</div><h1 class="text-4xl lg:text-6xl font-bold text-gray-900 mb-6">Your Smile is Our <span class="text-blue-600">Priority</span></h1><p class="text-xl text-gray-600 mb-8 leading-relaxed">Experience exceptional dental care with our state-of-the-art technology and compassionate team. We make every visit comfortable and stress-free.</p><div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"><button class="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-all transform hover:scale-105 shadow-lg">Book Appointment</button><button class="border-2 border-blue-600 text-blue-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-600 hover:text-white transition-all">Emergency Care</button></div><div class="mt-8 flex items-center justify-center lg:justify-start gap-6"><div class="text-center"><div class="text-2xl font-bold text-blue-600">5000+</div><div class="text-sm text-gray-600">Happy Patients</div></div><div class="text-center"><div class="text-2xl font-bold text-blue-600">15+</div><div class="text-sm text-gray-600">Years Experience</div></div><div class="text-center"><div class="text-2xl font-bold text-blue-600">24/7</div><div class="text-sm text-gray-600">Emergency Care</div></div></div></div><div class="text-center"><img src="https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=600&h=500&fit=crop" alt="Modern Dental Office" class="rounded-2xl shadow-2xl mx-auto max-w-full h-auto"></div></div></div></section>'
+        },
+        {
+          id: 'dental-services-comprehensive',
+          component: '<section class="py-20 bg-gray-50"><div class="container mx-auto px-4"><div class="text-center mb-16"><h2 class="text-4xl font-bold text-gray-900 mb-4">Complete Dental Care Services</h2><p class="text-xl text-gray-600 max-w-3xl mx-auto">From routine cleanings to advanced procedures, we offer comprehensive dental services for patients of all ages.</p></div><div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8"><div class="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-all group"><div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6 group-hover:bg-blue-600 transition-all"><span class="text-3xl group-hover:text-white transition-all">🦷</span></div><h3 class="text-2xl font-bold text-gray-900 mb-4">General Dentistry</h3><p class="text-gray-600 mb-6">Cleanings, fillings, crowns, and preventive care to maintain optimal oral health.</p><ul class="text-sm text-gray-500 space-y-2"><li>• Regular Cleanings & Exams</li><li>• Dental Fillings</li><li>• Root Canal Therapy</li><li>• Crowns & Bridges</li></ul></div><div class="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-all group"><div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6 group-hover:bg-green-600 transition-all"><span class="text-3xl group-hover:text-white transition-all">✨</span></div><h3 class="text-2xl font-bold text-gray-900 mb-4">Cosmetic Dentistry</h3><p class="text-gray-600 mb-6">Transform your smile with our advanced cosmetic dental procedures.</p><ul class="text-sm text-gray-500 space-y-2"><li>• Professional Teeth Whitening</li><li>• Porcelain Veneers</li><li>• Smile Makeovers</li><li>• Bonding & Contouring</li></ul></div><div class="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-all group"><div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-6 group-hover:bg-purple-600 transition-all"><span class="text-3xl group-hover:text-white transition-all">🔧</span></div><h3 class="text-2xl font-bold text-gray-900 mb-4">Restorative Dentistry</h3><p class="text-gray-600 mb-6">Restore function and appearance with our restorative treatments.</p><ul class="text-sm text-gray-500 space-y-2"><li>• Dental Implants</li><li>• Partial & Full Dentures</li><li>• Fixed Bridges</li><li>• Full Mouth Restoration</li></ul></div><div class="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-all group"><div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-6 group-hover:bg-red-600 transition-all"><span class="text-3xl group-hover:text-white transition-all">🚨</span></div><h3 class="text-2xl font-bold text-gray-900 mb-4">Emergency Care</h3><p class="text-gray-600 mb-6">24/7 emergency dental care when you need it most.</p><ul class="text-sm text-gray-500 space-y-2"><li>• Severe Tooth Pain Relief</li><li>• Broken/Chipped Teeth</li><li>• Dental Trauma Care</li><li>• Same-Day Appointments</li></ul></div><div class="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-all group"><div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-6 group-hover:bg-indigo-600 transition-all"><span class="text-3xl group-hover:text-white transition-all">👨‍👩‍👧‍👦</span></div><h3 class="text-2xl font-bold text-gray-900 mb-4">Family Dentistry</h3><p class="text-gray-600 mb-6">Comprehensive dental care for patients of all ages.</p><ul class="text-sm text-gray-500 space-y-2"><li>• Pediatric Dentistry</li><li>• Adult Preventive Care</li><li>• Senior Dental Services</li><li>• Family Treatment Plans</li></ul></div><div class="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-all group"><div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-6 group-hover:bg-yellow-600 transition-all"><span class="text-3xl group-hover:text-white transition-all">📐</span></div><h3 class="text-2xl font-bold text-gray-900 mb-4">Orthodontics</h3><p class="text-gray-600 mb-6">Straighten your teeth with modern orthodontic solutions.</p><ul class="text-sm text-gray-500 space-y-2"><li>• Traditional Metal Braces</li><li>• Clear Ceramic Braces</li><li>• Invisalign Clear Aligners</li><li>• Retainers & Follow-up</li></ul></div></div></div></section>'
+        },
+        {
+          id: 'dental-about-practice',
+          component: '<section class="py-20 bg-white"><div class="container mx-auto px-4"><div class="grid lg:grid-cols-2 gap-16 items-center"><div><h2 class="text-4xl font-bold text-gray-900 mb-6">About Our Practice</h2><p class="text-xl text-gray-600 mb-8 leading-relaxed">For over 15 years, we have been dedicated to providing exceptional dental care in a comfortable, state-of-the-art environment. Our team combines the latest technology with a gentle, patient-centered approach.</p><div class="grid md:grid-cols-2 gap-6 mb-8"><div class="flex items-start gap-4"><div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0"><span class="text-blue-600 text-xl">🏆</span></div><div><h3 class="font-bold text-gray-900 mb-2">Award-Winning Care</h3><p class="text-gray-600 text-sm">Recognized for excellence in patient care and clinical outcomes.</p></div></div><div class="flex items-start gap-4"><div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0"><span class="text-green-600 text-xl">🛡️</span></div><div><h3 class="font-bold text-gray-900 mb-2">Advanced Technology</h3><p class="text-gray-600 text-sm">Latest equipment for precise, comfortable treatments.</p></div></div><div class="flex items-start gap-4"><div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0"><span class="text-purple-600 text-xl">❤️</span></div><div><h3 class="font-bold text-gray-900 mb-2">Patient Comfort</h3><p class="text-gray-600 text-sm">Anxiety-free environment with sedation options available.</p></div></div><div class="flex items-start gap-4"><div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0"><span class="text-orange-600 text-xl">⚡</span></div><div><h3 class="font-bold text-gray-900 mb-2">Flexible Scheduling</h3><p class="text-gray-600 text-sm">Convenient appointment times including evenings and weekends.</p></div></div></div><button class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-all">Learn More About Us</button></div><div class="text-center"><img src="https://images.unsplash.com/photo-1551076805-e1869033e561?w=600&h=500&fit=crop" alt="Modern Dental Equipment" class="rounded-2xl shadow-xl mx-auto max-w-full h-auto"></div></div></div></section>'
+        },
+        {
+          id: 'dental-team-grid',
+          component: '<section class="py-20 bg-gray-50"><div class="container mx-auto px-4"><div class="text-center mb-16"><h2 class="text-4xl font-bold text-gray-900 mb-4">Meet Our Expert Team</h2><p class="text-xl text-gray-600 max-w-3xl mx-auto">Our experienced team of dental professionals is committed to providing you with the highest quality care in a comfortable environment.</p></div><div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8"><div class="bg-white rounded-xl shadow-lg overflow-hidden group hover:shadow-xl transition-all"><img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=300&fit=crop" alt="Dr. Sarah Johnson" class="w-full h-64 object-cover group-hover:scale-105 transition-all duration-300"><div class="p-6"><h3 class="text-xl font-bold text-gray-900 mb-2">Dr. Sarah Johnson</h3><p class="text-blue-600 font-medium mb-3">Lead Dentist, DDS</p><p class="text-gray-600 text-sm mb-4">15+ years of experience in general and cosmetic dentistry. Specializes in smile makeovers and restorative procedures.</p><div class="flex gap-2"><span class="px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">General Dentistry</span><span class="px-3 py-1 bg-green-100 text-green-800 text-xs rounded-full">Cosmetic</span></div></div></div><div class="bg-white rounded-xl shadow-lg overflow-hidden group hover:shadow-xl transition-all"><img src="https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=300&fit=crop" alt="Dr. Michael Chen" class="w-full h-64 object-cover group-hover:scale-105 transition-all duration-300"><div class="p-6"><h3 class="text-xl font-bold text-gray-900 mb-2">Dr. Michael Chen</h3><p class="text-blue-600 font-medium mb-3">Oral Surgeon, DDS, MS</p><p class="text-gray-600 text-sm mb-4">Board-certified oral surgeon specializing in dental implants, wisdom teeth removal, and complex extractions.</p><div class="flex gap-2"><span class="px-3 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">Oral Surgery</span><span class="px-3 py-1 bg-red-100 text-red-800 text-xs rounded-full">Implants</span></div></div></div><div class="bg-white rounded-xl shadow-lg overflow-hidden group hover:shadow-xl transition-all"><img src="https://images.unsplash.com/photo-1594824792090-0c319962da1a?w=400&h=300&fit=crop" alt="Dr. Emily Rodriguez" class="w-full h-64 object-cover group-hover:scale-105 transition-all duration-300"><div class="p-6"><h3 class="text-xl font-bold text-gray-900 mb-2">Dr. Emily Rodriguez</h3><p class="text-blue-600 font-medium mb-3">Pediatric Dentist, DDS</p><p class="text-gray-600 text-sm mb-4">Specialized in children\'s dentistry with a gentle approach that makes kids feel comfortable and safe.</p><div class="flex gap-2"><span class="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">Pediatric</span><span class="px-3 py-1 bg-pink-100 text-pink-800 text-xs rounded-full">Prevention</span></div></div></div></div></div></section>'
+        },
+        {
+          id: 'dental-appointment-form',
+          component: '<section class="py-20 bg-blue-600"><div class="container mx-auto px-4"><div class="grid lg:grid-cols-2 gap-12 items-center"><div class="text-white"><h2 class="text-4xl font-bold mb-6">Schedule Your Appointment Today</h2><p class="text-xl text-blue-100 mb-8 leading-relaxed">Take the first step towards a healthier, more beautiful smile. Our friendly team is ready to provide you with exceptional dental care.</p><div class="space-y-4"><div class="flex items-center gap-4"><div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center"><span class="text-white text-xl">📅</span></div><div><h3 class="font-bold text-white">Flexible Scheduling</h3><p class="text-blue-100 text-sm">Evening and weekend appointments available</p></div></div><div class="flex items-center gap-4"><div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center"><span class="text-white text-xl">💳</span></div><div><h3 class="font-bold text-white">Insurance Accepted</h3><p class="text-blue-100 text-sm">We work with most dental insurance plans</p></div></div><div class="flex items-center gap-4"><div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center"><span class="text-white text-xl">🚨</span></div><div><h3 class="font-bold text-white">Emergency Care</h3><p class="text-blue-100 text-sm">Same-day appointments for dental emergencies</p></div></div></div></div><div class="bg-white p-8 rounded-2xl shadow-xl"><h3 class="text-2xl font-bold text-gray-900 mb-6">Book Your Appointment</h3><form class="space-y-4"><div class="grid md:grid-cols-2 gap-4"><input type="text" placeholder="First Name" class="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"><input type="text" placeholder="Last Name" class="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"></div><input type="email" placeholder="Email Address" class="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"><input type="tel" placeholder="Phone Number" class="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"><div class="grid md:grid-cols-2 gap-4"><input type="date" class="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"><select class="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"><option>Preferred Time</option><option>9:00 AM</option><option>11:00 AM</option><option>2:00 PM</option><option>4:00 PM</option></select></div><select class="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"><option>Service Needed</option><option>General Checkup</option><option>Cleaning</option><option>Cosmetic Consultation</option><option>Emergency Care</option><option>Other</option></select><textarea placeholder="Additional Message (Optional)" rows="3" class="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"></textarea><button type="submit" class="w-full bg-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-all">Schedule Appointment</button></form></div></div></div></section>'
+        },
+        {
+          id: 'dental-contact-footer',
+          component: '<footer class="bg-gray-900 text-white py-16"><div class="container mx-auto px-4"><div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12"><div><h3 class="text-xl font-bold mb-6">SmileCare Dental</h3><p class="text-gray-300 mb-6 leading-relaxed">Your trusted partner for comprehensive dental care. Creating beautiful, healthy smiles for the whole family.</p><div class="flex gap-4"><a href="#" class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-blue-600 transition-all"><span class="text-sm">f</span></a><a href="#" class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-blue-600 transition-all"><span class="text-sm">t</span></a><a href="#" class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-blue-600 transition-all"><span class="text-sm">in</span></a></div></div><div><h3 class="text-xl font-bold mb-6">Services</h3><ul class="space-y-3 text-gray-300"><li><a href="#" class="hover:text-blue-400 transition-all">General Dentistry</a></li><li><a href="#" class="hover:text-blue-400 transition-all">Cosmetic Dentistry</a></li><li><a href="#" class="hover:text-blue-400 transition-all">Dental Implants</a></li><li><a href="#" class="hover:text-blue-400 transition-all">Orthodontics</a></li><li><a href="#" class="hover:text-blue-400 transition-all">Emergency Care</a></li></ul></div><div><h3 class="text-xl font-bold mb-6">Contact Info</h3><div class="space-y-3 text-gray-300"><div class="flex items-center gap-3"><span class="text-blue-400">📍</span><span>123 Dental Street<br>Health City, HC 12345</span></div><div class="flex items-center gap-3"><span class="text-blue-400">📞</span><span>(555) 123-4567</span></div><div class="flex items-center gap-3"><span class="text-blue-400">✉️</span><span>info@smilecare.com</span></div></div></div><div><h3 class="text-xl font-bold mb-6">Office Hours</h3><div class="space-y-2 text-gray-300"><div class="flex justify-between"><span>Monday - Friday</span><span class="text-blue-400">8AM - 6PM</span></div><div class="flex justify-between"><span>Saturday</span><span class="text-blue-400">9AM - 4PM</span></div><div class="flex justify-between"><span>Sunday</span><span class="text-blue-400">Emergency Only</span></div></div></div></div><div class="border-t border-gray-800 pt-8"><div class="flex flex-col md:flex-row justify-between items-center gap-4"><p class="text-gray-400">© 2024 SmileCare Dental. All rights reserved.</p><div class="flex gap-6 text-gray-400 text-sm"><a href="#" class="hover:text-blue-400 transition-all">Privacy Policy</a><a href="#" class="hover:text-blue-400 transition-all">Terms of Service</a><a href="#" class="hover:text-blue-400 transition-all">Sitemap</a></div></div></div></div></footer>'
+        }
+      ]
+    },
+    {
+      id: 'orthodontist-specialist',
+      name: 'Orthodontist Specialist',
+      description: 'Specialized template for orthodontic practices focusing on braces and aligners',
+      category: 'Orthodontics',
+      image: 'https://images.unsplash.com/photo-1609840114035-3c981b782dfe?w=400&h=300&fit=crop',
+      tags: ['orthodontics', 'braces', 'invisalign', 'specialist'],
+      components: [
+        'orthodontist-hero',
+        'orthodontist-treatments',
+        'orthodontist-before-after',
+        'orthodontist-process',
+        'orthodontist-consultation',
+        'orthodontist-footer'
+      ],
+      layout: [
+        {
+          id: 'orthodontist-hero',
+          component: '<section class="relative bg-gradient-to-br from-purple-50 to-indigo-50 py-20 lg:py-32"><div class="container mx-auto px-4"><div class="grid lg:grid-cols-2 gap-12 items-center"><div class="text-center lg:text-left"><div class="inline-flex items-center px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-medium mb-6">⭐ Award-Winning Orthodontists</div><h1 class="text-4xl lg:text-6xl font-bold text-gray-900 mb-6">Transform Your Smile with Expert <span class="text-purple-600">Orthodontic Care</span></h1><p class="text-xl text-gray-600 mb-8 leading-relaxed">Achieve the perfect smile with our cutting-edge orthodontic treatments. From traditional braces to Invisalign, we make beautiful smiles accessible and comfortable.</p><div class="grid grid-cols-3 gap-6 mb-8"><div class="text-center"><div class="text-3xl font-bold text-purple-600">5000+</div><div class="text-sm text-gray-600">Happy Patients</div></div><div class="text-center"><div class="text-3xl font-bold text-purple-600">15+</div><div class="text-sm text-gray-600">Years Experience</div></div><div class="text-center"><div class="text-3xl font-bold text-purple-600">98%</div><div class="text-sm text-gray-600">Success Rate</div></div></div><div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"><button class="bg-purple-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-purple-700 transition-all transform hover:scale-105 shadow-lg">Free Consultation</button><button class="border-2 border-purple-600 text-purple-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-purple-600 hover:text-white transition-all">View Treatments</button></div></div><div class="text-center relative"><img src="https://images.unsplash.com/photo-1609840114035-3c981b782dfe?w=600&h=500&fit=crop" alt="Perfect Orthodontic Smile" class="rounded-2xl shadow-2xl mx-auto max-w-full h-auto"><div class="absolute top-4 right-4 bg-white px-4 py-2 rounded-full shadow-lg"><span class="text-purple-600 font-semibold text-sm">🛡️ Painless Treatment</span></div></div></div></div></section>'
+        },
+        {
+          id: 'orthodontist-treatments',
+          component: '<section class="py-20 bg-white"><div class="container mx-auto px-4"><div class="text-center mb-16"><h2 class="text-4xl font-bold text-gray-900 mb-4">Our Orthodontic Treatments</h2><p class="text-xl text-gray-600 max-w-3xl mx-auto">Comprehensive solutions for every orthodontic need, from traditional braces to the latest clear aligner technology.</p></div><div class="grid lg:grid-cols-3 gap-8"><div class="relative bg-gradient-to-br from-purple-50 to-white p-8 rounded-2xl shadow-lg border-2 border-purple-200"><div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-purple-600 text-white px-4 py-2 rounded-full text-sm font-bold">Most Popular</div><div class="text-center mb-6"><div class="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4"><span class="text-4xl">🦷</span></div><h3 class="text-2xl font-bold text-gray-900 mb-2">Invisalign Clear Aligners</h3><p class="text-gray-600">Nearly invisible aligners that straighten teeth comfortably without metal braces.</p></div><ul class="space-y-3 mb-8"><li class="flex items-center gap-3"><span class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">✓</span><span class="text-gray-700">Virtually invisible</span></li><li class="flex items-center gap-3"><span class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">✓</span><span class="text-gray-700">Removable for eating</span></li><li class="flex items-center gap-3"><span class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">✓</span><span class="text-gray-700">Comfortable fit</span></li><li class="flex items-center gap-3"><span class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">✓</span><span class="text-gray-700">Shorter treatment time</span></li></ul><div class="text-center mb-6"><div class="text-3xl font-bold text-purple-600">Starting at $3,500</div><div class="text-gray-600">$150/month payment plans</div></div><button class="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-all">Learn More</button></div><div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-200"><div class="text-center mb-6"><div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4"><span class="text-4xl">🔧</span></div><h3 class="text-2xl font-bold text-gray-900 mb-2">Traditional Metal Braces</h3><p class="text-gray-600">Time-tested metal braces with modern improvements for effective tooth alignment.</p></div><ul class="space-y-3 mb-8"><li class="flex items-center gap-3"><span class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">✓</span><span class="text-gray-700">Most effective option</span></li><li class="flex items-center gap-3"><span class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">✓</span><span class="text-gray-700">Durable and reliable</span></li><li class="flex items-center gap-3"><span class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">✓</span><span class="text-gray-700">Cost-effective</span></li><li class="flex items-center gap-3"><span class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">✓</span><span class="text-gray-700">Suitable for all ages</span></li></ul><div class="text-center mb-6"><div class="text-3xl font-bold text-blue-600">Starting at $2,800</div><div class="text-gray-600">$120/month payment plans</div></div><button class="w-full border-2 border-blue-600 text-blue-600 py-3 rounded-lg font-semibold hover:bg-blue-600 hover:text-white transition-all">Learn More</button></div><div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-200"><div class="text-center mb-6"><div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"><span class="text-4xl">💎</span></div><h3 class="text-2xl font-bold text-gray-900 mb-2">Clear Ceramic Braces</h3><p class="text-gray-600">Tooth-colored brackets that blend with your natural teeth for a discrete appearance.</p></div><ul class="space-y-3 mb-8"><li class="flex items-center gap-3"><span class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">✓</span><span class="text-gray-700">Less noticeable</span></li><li class="flex items-center gap-3"><span class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">✓</span><span class="text-gray-700">Same effectiveness as metal</span></li><li class="flex items-center gap-3"><span class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">✓</span><span class="text-gray-700">Comfortable</span></li><li class="flex items-center gap-3"><span class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">✓</span><span class="text-gray-700">Stain-resistant</span></li></ul><div class="text-center mb-6"><div class="text-3xl font-bold text-green-600">Starting at $3,200</div><div class="text-gray-600">$135/month payment plans</div></div><button class="w-full border-2 border-green-600 text-green-600 py-3 rounded-lg font-semibold hover:bg-green-600 hover:text-white transition-all">Learn More</button></div></div><div class="mt-16 bg-gray-50 p-8 rounded-2xl"><h3 class="text-2xl font-bold text-gray-900 text-center mb-8">Your Orthodontic Journey</h3><div class="grid md:grid-cols-4 gap-6"><div class="text-center"><div class="w-16 h-16 bg-purple-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">1</div><h4 class="font-bold text-gray-900 mb-2">Free Consultation</h4><p class="text-gray-600 text-sm">Comprehensive examination and treatment planning</p></div><div class="text-center"><div class="w-16 h-16 bg-purple-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">2</div><h4 class="font-bold text-gray-900 mb-2">Custom Treatment Plan</h4><p class="text-gray-600 text-sm">Personalized approach based on your unique needs</p></div><div class="text-center"><div class="w-16 h-16 bg-purple-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">3</div><h4 class="font-bold text-gray-900 mb-2">Treatment Begins</h4><p class="text-gray-600 text-sm">Start your journey to a perfect smile</p></div><div class="text-center"><div class="w-16 h-16 bg-purple-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">4</div><h4 class="font-bold text-gray-900 mb-2">Beautiful Results</h4><p class="text-gray-600 text-sm">Enjoy your new confident smile</p></div></div></div></div></section>'
+        },
+        {
+          id: 'orthodontist-consultation',
+          component: '<section class="py-20 bg-gradient-to-br from-purple-600 to-indigo-600 text-white"><div class="container mx-auto px-4"><div class="grid lg:grid-cols-2 gap-12 items-center"><div><h2 class="text-4xl font-bold mb-6">Start Your Smile Journey Today</h2><p class="text-xl text-purple-100 mb-8 leading-relaxed">Book your free consultation and discover how we can transform your smile with expert orthodontic care.</p><div class="space-y-6"><div class="flex items-center gap-4"><div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center"><span class="text-2xl">👨‍⚕️</span></div><div><h3 class="font-bold text-white text-lg">Expert Evaluation</h3><p class="text-purple-100">Comprehensive examination by our orthodontists</p></div></div><div class="flex items-center gap-4"><div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center"><span class="text-2xl">📊</span></div><div><h3 class="font-bold text-white text-lg">Custom Treatment Plan</h3><p class="text-purple-100">Personalized approach for your unique needs</p></div></div><div class="flex items-center gap-4"><div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center"><span class="text-2xl">💰</span></div><div><h3 class="font-bold text-white text-lg">Flexible Financing</h3><p class="text-purple-100">Affordable payment plans and insurance options</p></div></div></div></div><div class="bg-white p-8 rounded-2xl shadow-2xl"><h3 class="text-2xl font-bold text-gray-900 mb-6">Book Your Free Consultation</h3><form class="space-y-4"><div class="grid md:grid-cols-2 gap-4"><input type="text" placeholder="First Name" class="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"><input type="text" placeholder="Last Name" class="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"></div><input type="email" placeholder="Email Address" class="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"><input type="tel" placeholder="Phone Number" class="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"><select class="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"><option>Patient Age</option><option>Child (7-12)</option><option>Teen (13-17)</option><option>Adult (18+)</option></select><select class="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"><option>Treatment Interest</option><option>Invisalign</option><option>Traditional Braces</option><option>Clear Braces</option><option>General Consultation</option></select><textarea placeholder="Tell us about your smile goals..." rows="3" class="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"></textarea><button type="submit" class="w-full bg-purple-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-purple-700 transition-all">Schedule Free Consultation</button></form><p class="text-sm text-gray-500 text-center mt-4">* Free consultation includes examination and treatment planning</p></div></div></div></section>'
+        },
+        {
+          id: 'orthodontist-footer',
+          component: '<footer class="bg-gray-900 text-white py-16"><div class="container mx-auto px-4"><div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12"><div><h3 class="text-xl font-bold mb-6">StraightSmile Orthodontics</h3><p class="text-gray-300 mb-6 leading-relaxed">Expert orthodontic care creating beautiful, confident smiles for patients of all ages. Your journey to a perfect smile starts here.</p><div class="flex gap-4"><a href="#" class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-purple-600 transition-all"><span class="text-sm">f</span></a><a href="#" class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-purple-600 transition-all"><span class="text-sm">ig</span></a><a href="#" class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-purple-600 transition-all"><span class="text-sm">yt</span></a></div></div><div><h3 class="text-xl font-bold mb-6">Treatments</h3><ul class="space-y-3 text-gray-300"><li><a href="#" class="hover:text-purple-400 transition-all">Invisalign</a></li><li><a href="#" class="hover:text-purple-400 transition-all">Traditional Braces</a></li><li><a href="#" class="hover:text-purple-400 transition-all">Clear Braces</a></li><li><a href="#" class="hover:text-purple-400 transition-all">Retainers</a></li><li><a href="#" class="hover:text-purple-400 transition-all">Surgical Orthodontics</a></li></ul></div><div><h3 class="text-xl font-bold mb-6">Contact Info</h3><div class="space-y-3 text-gray-300"><div class="flex items-center gap-3"><span class="text-purple-400">📍</span><span>456 Smile Avenue<br>Orthodontics City, OC 54321</span></div><div class="flex items-center gap-3"><span class="text-purple-400">📞</span><span>(555) 987-6543</span></div><div class="flex items-center gap-3"><span class="text-purple-400">✉️</span><span>info@straightsmileortho.com</span></div></div></div><div><h3 class="text-xl font-bold mb-6">Office Hours</h3><div class="space-y-2 text-gray-300"><div class="flex justify-between"><span>Mon - Thu</span><span class="text-purple-400">8AM - 5PM</span></div><div class="flex justify-between"><span>Friday</span><span class="text-purple-400">8AM - 4PM</span></div><div class="flex justify-between"><span>Saturday</span><span class="text-purple-400">By Appointment</span></div><div class="flex justify-between"><span>Sunday</span><span class="text-purple-400">Closed</span></div></div></div></div><div class="border-t border-gray-800 pt-8"><div class="flex flex-col md:flex-row justify-between items-center gap-4"><p class="text-gray-400">© 2024 StraightSmile Orthodontics. All rights reserved.</p><div class="flex gap-6 text-gray-400 text-sm"><a href="#" class="hover:text-purple-400 transition-all">Privacy Policy</a><a href="#" class="hover:text-purple-400 transition-all">Terms of Service</a><a href="#" class="hover:text-purple-400 transition-all">Sitemap</a></div></div></div></div></footer>'
+        }
+      ]
+    },
+    {
+      id: 'pediatric-dentist',
+      name: 'Pediatric Dentist',
+      description: 'Fun, colorful template designed specifically for children\'s dental care',
+      category: 'Pediatric Dentistry',
+      image: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop',
+      tags: ['pediatric', 'children', 'fun', 'colorful', 'family'],
+      components: [
+        'pediatric-hero',
+        'pediatric-services',
+        'pediatric-team',
+        'pediatric-appointment',
+        'pediatric-footer'
+      ],
+      layout: [
+        {
+          id: 'pediatric-hero',
+          component: '<section class="relative bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50 py-20 lg:py-32 overflow-hidden"><div class="absolute inset-0"><div class="absolute top-10 left-10 w-20 h-20 bg-yellow-300 rounded-full opacity-60"></div><div class="absolute top-32 right-20 w-16 h-16 bg-blue-300 rounded-full opacity-60"></div><div class="absolute bottom-20 left-32 w-12 h-12 bg-green-300 rounded-full opacity-60"></div><div class="absolute bottom-40 right-10 w-24 h-24 bg-pink-300 rounded-full opacity-60"></div></div><div class="relative container mx-auto px-4"><div class="grid lg:grid-cols-2 gap-12 items-center"><div class="text-center lg:text-left"><div class="inline-flex items-center px-4 py-2 bg-rainbow-gradient text-white rounded-full text-sm font-medium mb-6">🌈 Making Dental Visits Fun Since 2010!</div><h1 class="text-4xl lg:text-6xl font-bold text-gray-900 mb-6">Happy Teeth for <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">Happy Kids!</span></h1><p class="text-xl text-gray-600 mb-8 leading-relaxed">We make dental care fun and stress-free for children. Our gentle, kid-friendly approach helps your little ones develop healthy dental habits for life!</p><div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8"><button class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-4 rounded-full font-semibold text-lg hover:shadow-lg transition-all transform hover:scale-105">Schedule Visit</button><button class="border-2 border-purple-500 text-purple-500 px-8 py-4 rounded-full font-semibold text-lg hover:bg-purple-500 hover:text-white transition-all">Virtual Tour</button></div><div class="grid grid-cols-4 gap-4 text-center"><div class="bg-white p-4 rounded-2xl shadow-lg"><div class="text-2xl mb-2">🎮</div><div class="text-sm font-bold text-gray-900">Fun Games</div></div><div class="bg-white p-4 rounded-2xl shadow-lg"><div class="text-2xl mb-2">🏆</div><div class="text-sm font-bold text-gray-900">Rewards</div></div><div class="bg-white p-4 rounded-2xl shadow-lg"><div class="text-2xl mb-2">🎪</div><div class="text-sm font-bold text-gray-900">Playful</div></div><div class="bg-white p-4 rounded-2xl shadow-lg"><div class="text-2xl mb-2">💝</div><div class="text-sm font-bold text-gray-900">Prizes</div></div></div></div><div class="text-center relative"><img src="https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=600&h=500&fit=crop" alt="Happy Children at Dentist" class="rounded-3xl shadow-2xl mx-auto max-w-full h-auto"><div class="absolute -top-4 -right-4 bg-yellow-400 text-yellow-900 px-4 py-2 rounded-full shadow-lg font-bold">No More Fears! 😊</div></div></div></div></section>'
+        },
+        {
+          id: 'pediatric-services',
+          component: '<section class="py-20 bg-white"><div class="container mx-auto px-4"><div class="text-center mb-16"><h2 class="text-4xl font-bold text-gray-900 mb-4">Super Fun Dental Services!</h2><p class="text-xl text-gray-600 max-w-3xl mx-auto">We offer gentle, kid-friendly dental care that makes every visit an adventure. From tiny tots to teenagers!</p></div><div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8"><div class="bg-gradient-to-br from-blue-50 to-blue-100 p-8 rounded-3xl shadow-lg hover:shadow-xl transition-all group"><div class="w-20 h-20 bg-blue-200 rounded-full flex items-center justify-content mx-auto mb-6 group-hover:animate-bounce"><span class="text-4xl mx-auto">🦷</span></div><h3 class="text-2xl font-bold text-gray-900 mb-4 text-center">Gentle Cleanings</h3><p class="text-gray-600 mb-6 text-center">Fun, thorough cleanings that feel like a game! We use special flavored toothpaste and gentle techniques.</p><ul class="text-sm text-gray-700 space-y-2"><li class="flex items-center gap-2"><span class="text-green-500">✨</span> Bubble gum flavored polish</li><li class="flex items-center gap-2"><span class="text-green-500">✨</span> Gentle vibrating tools</li><li class="flex items-center gap-2"><span class="text-green-500">✨</span> Fun music and cartoons</li><li class="flex items-center gap-2"><span class="text-green-500">✨</span> Sticker rewards!</li></ul></div><div class="bg-gradient-to-br from-purple-50 to-purple-100 p-8 rounded-3xl shadow-lg hover:shadow-xl transition-all group"><div class="w-20 h-20 bg-purple-200 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:animate-bounce"><span class="text-4xl">🛡️</span></div><h3 class="text-2xl font-bold text-gray-900 mb-4 text-center">Fluoride Treatments</h3><p class="text-gray-600 mb-6 text-center">Superhero protection for teeth! Special fluoride treatments that taste like yummy fruit flavors.</p><ul class="text-sm text-gray-700 space-y-2"><li class="flex items-center gap-2"><span class="text-green-500">✨</span> Strawberry, grape, or mint</li><li class="flex items-center gap-2"><span class="text-green-500">✨</span> Quick and painless</li><li class="flex items-center gap-2"><span class="text-green-500">✨</span> Strengthens tooth enamel</li><li class="flex items-center gap-2"><span class="text-green-500">✨</span> Cavity prevention</li></ul></div><div class="bg-gradient-to-br from-green-50 to-green-100 p-8 rounded-3xl shadow-lg hover:shadow-xl transition-all group"><div class="w-20 h-20 bg-green-200 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:animate-bounce"><span class="text-4xl">🔍</span></div><h3 class="text-2xl font-bold text-gray-900 mb-4 text-center">Tooth Detective Work</h3><p class="text-gray-600 mb-6 text-center">We use special detective tools to look for cavity monsters and keep teeth healthy!</p><ul class="text-sm text-gray-700 space-y-2"><li class="flex items-center gap-2"><span class="text-green-500">✨</span> Digital X-rays (super fast!)</li><li class="flex items-center gap-2"><span class="text-green-500">✨</span> Cavity detection</li><li class="flex items-center gap-2"><span class="text-green-500">✨</span> Growth monitoring</li><li class="flex items-center gap-2"><span class="text-green-500">✨</span> Fun explanations</li></ul></div><div class="bg-gradient-to-br from-yellow-50 to-yellow-100 p-8 rounded-3xl shadow-lg hover:shadow-xl transition-all group"><div class="w-20 h-20 bg-yellow-200 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:animate-bounce"><span class="text-4xl">🌟</span></div><h3 class="text-2xl font-bold text-gray-900 mb-4 text-center">Sealants</h3><p class="text-gray-600 mb-6 text-center">Magic protective coatings that keep the cavity monsters away from back teeth!</p><ul class="text-sm text-gray-700 space-y-2"><li class="flex items-center gap-2"><span class="text-green-500">✨</span> Invisible protection</li><li class="flex items-center gap-2"><span class="text-green-500">✨</span> No shots needed</li><li class="flex items-center gap-2"><span class="text-green-500">✨</span> Lasts for years</li><li class="flex items-center gap-2"><span class="text-green-500">✨</span> Prevents 80% of cavities</li></ul></div><div class="bg-gradient-to-br from-pink-50 to-pink-100 p-8 rounded-3xl shadow-lg hover:shadow-xl transition-all group"><div class="w-20 h-20 bg-pink-200 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:animate-bounce"><span class="text-4xl">🎨</span></div><h3 class="text-2xl font-bold text-gray-900 mb-4 text-center">Colorful Fillings</h3><p class="text-gray-600 mb-6 text-center">If we find any cavity monsters, we fix them with special tooth-colored materials!</p><ul class="text-sm text-gray-700 space-y-2"><li class="flex items-center gap-2"><span class="text-green-500">✨</span> Looks natural</li><li class="flex items-center gap-2"><span class="text-green-500">✨</span> Strong and durable</li><li class="flex items-center gap-2"><span class="text-green-500">✨</span> Gentle process</li><li class="flex items-center gap-2"><span class="text-green-500">✨</span> No metal needed</li></ul></div><div class="bg-gradient-to-br from-indigo-50 to-indigo-100 p-8 rounded-3xl shadow-lg hover:shadow-xl transition-all group"><div class="w-20 h-20 bg-indigo-200 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:animate-bounce"><span class="text-4xl">🎪</span></div><h3 class="text-2xl font-bold text-gray-900 mb-4 text-center">Emergency Care</h3><p class="text-gray-600 mb-6 text-center">Uh oh! Tooth accidents happen. We\'re here to help make everything better quickly!</p><ul class="text-sm text-gray-700 space-y-2"><li class="flex items-center gap-2"><span class="text-green-500">✨</span> Same-day appointments</li><li class="flex items-center gap-2"><span class="text-green-500">✨</span> Pain relief</li><li class="flex items-center gap-2"><span class="text-green-500">✨</span> Gentle treatment</li><li class="flex items-center gap-2"><span class="text-green-500">✨</span> Parent support</li></ul></div></div></div></section>'
+        },
+        {
+          id: 'pediatric-appointment',
+          component: '<section class="py-20 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500"><div class="container mx-auto px-4"><div class="grid lg:grid-cols-2 gap-12 items-center"><div class="text-white"><h2 class="text-4xl font-bold mb-6">Ready for a Fun Dental Adventure?</h2><p class="text-xl text-purple-100 mb-8 leading-relaxed">Book your child\'s appointment today and discover why kids love coming to see us! No more dental fears, just smiles and fun!</p><div class="space-y-6"><div class="flex items-center gap-4"><div class="w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center"><span class="text-2xl">🎮</span></div><div><h3 class="font-bold text-white text-lg">Fun Games & Activities</h3><p class="text-purple-100">Interactive games and toys in our waiting area</p></div></div><div class="flex items-center gap-4"><div class="w-12 h-12 bg-green-400 rounded-full flex items-center justify-center"><span class="text-2xl">🏆</span></div><div><h3 class="font-bold text-white text-lg">Reward System</h3><p class="text-purple-100">Stickers, prizes, and certificates for brave kids</p></div></div><div class="flex items-center gap-4"><div class="w-12 h-12 bg-blue-400 rounded-full flex items-center justify-center"><span class="text-2xl">👨‍👩‍👧‍👦</span></div><div><h3 class="font-bold text-white text-lg">Parent-Friendly</h3><p class="text-purple-100">We welcome parents in the treatment room</p></div></div></div></div><div class="bg-white p-8 rounded-3xl shadow-2xl"><h3 class="text-2xl font-bold text-gray-900 mb-6 text-center">Schedule Your Child\'s Visit</h3><form class="space-y-4"><div class="grid md:grid-cols-2 gap-4"><input type="text" placeholder="Parent/Guardian Name" class="w-full p-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"><input type="text" placeholder="Child\'s Name" class="w-full p-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"></div><div class="grid md:grid-cols-2 gap-4"><input type="email" placeholder="Email Address" class="w-full p-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"><input type="tel" placeholder="Phone Number" class="w-full p-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"></div><div class="grid md:grid-cols-2 gap-4"><select class="w-full p-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"><option>Child\'s Age</option><option>2-3 years (Toddler)</option><option>4-6 years (Preschool)</option><option>7-10 years (School Age)</option><option>11-14 years (Preteen)</option><option>15-17 years (Teen)</option></select><select class="w-full p-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"><option>Visit Type</option><option>First Visit/Checkup</option><option>Cleaning</option><option>Check a Problem</option><option>Emergency</option><option>Follow-up</option></select></div><textarea placeholder="Tell us about your child\'s dental needs or any concerns..." rows="3" class="w-full p-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"></textarea><div class="flex items-center gap-3 text-sm text-gray-600"><input type="checkbox" class="w-4 h-4 text-purple-600"><span>My child has been to a dentist before</span></div><div class="flex items-center gap-3 text-sm text-gray-600"><input type="checkbox" class="w-4 h-4 text-purple-600"><span>My child has dental anxiety/fears</span></div><button type="submit" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 rounded-xl font-bold text-lg hover:shadow-lg transition-all transform hover:scale-105">🌟 Book Fun Dental Visit! 🌟</button></form><p class="text-sm text-gray-500 text-center mt-4">✨ First visits include a fun tour and special welcome gift!</p></div></div></div></section>'
+        },
+        {
+          id: 'pediatric-footer',
+          component: '<footer class="bg-gradient-to-r from-purple-800 to-pink-800 text-white py-16"><div class="container mx-auto px-4"><div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12"><div><h3 class="text-xl font-bold mb-6">🌈 Happy Teeth Pediatric Dentistry</h3><p class="text-purple-100 mb-6 leading-relaxed">Making dental visits fun and educational for kids since 2010. We believe every child deserves a healthy, beautiful smile!</p><div class="flex gap-4"><a href="#" class="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center hover:bg-yellow-300 transition-all text-purple-800 font-bold">f</a><a href="#" class="w-10 h-10 bg-pink-400 rounded-full flex items-center justify-center hover:bg-pink-300 transition-all text-purple-800 font-bold">ig</a><a href="#" class="w-10 h-10 bg-blue-400 rounded-full flex items-center justify-center hover:bg-blue-300 transition-all text-purple-800 font-bold">yt</a></div></div><div><h3 class="text-xl font-bold mb-6">🦷 Our Services</h3><ul class="space-y-3 text-purple-100"><li><a href="#" class="hover:text-yellow-300 transition-all">• Gentle Cleanings</a></li><li><a href="#" class="hover:text-yellow-300 transition-all">• Fluoride Treatments</a></li><li><a href="#" class="hover:text-yellow-300 transition-all">• Sealants</a></li><li><a href="#" class="hover:text-yellow-300 transition-all">• Colorful Fillings</a></li><li><a href="#" class="hover:text-yellow-300 transition-all">• Emergency Care</a></li></ul></div><div><h3 class="text-xl font-bold mb-6">📞 Contact Info</h3><div class="space-y-3 text-purple-100"><div class="flex items-center gap-3"><span class="text-yellow-300">🏠</span><span>789 Smile Street<br>Happy Valley, HV 98765</span></div><div class="flex items-center gap-3"><span class="text-yellow-300">📱</span><span>(555) KID-TEETH<br>(555) 543-8338</span></div><div class="flex items-center gap-3"><span class="text-yellow-300">💌</span><span>smile@happyteethkids.com</span></div></div></div><div><h3 class="text-xl font-bold mb-6">🕐 Office Hours</h3><div class="space-y-2 text-purple-100"><div class="flex justify-between"><span>Monday - Friday</span><span class="text-yellow-300">8AM - 5PM</span></div><div class="flex justify-between"><span>Saturday</span><span class="text-yellow-300">9AM - 2PM</span></div><div class="flex justify-between"><span>Sunday</span><span class="text-yellow-300">Closed</span></div><div class="mt-4 p-3 bg-yellow-400 text-purple-800 rounded-lg text-sm"><strong>🚨 Emergency Line:</strong><br>Available 24/7 for dental emergencies</div></div></div></div><div class="border-t border-purple-600 pt-8"><div class="flex flex-col md:flex-row justify-between items-center gap-4"><p class="text-purple-200">© 2024 Happy Teeth Pediatric Dentistry. All rights reserved. 🌟</p><div class="flex gap-6 text-purple-200 text-sm"><a href="#" class="hover:text-yellow-300 transition-all">Privacy Policy</a><a href="#" class="hover:text-yellow-300 transition-all">Terms of Service</a><a href="#" class="hover:text-yellow-300 transition-all">Fun Zone</a></div></div></div></div></footer>'
+        }
+      ]
+    },
+    {
+      id: 'cosmetic-dentist',
+      name: 'Cosmetic Dentist',
+      description: 'Elegant template showcasing smile transformations and aesthetic procedures',
+      category: 'Cosmetic Dentistry',
+      image: 'https://images.unsplash.com/photo-1606811971618-4486d14f3f99?w=400&h=300&fit=crop',
+      tags: ['cosmetic', 'aesthetic', 'smile', 'transformation', 'luxury'],
+      components: [
+        'cosmetic-hero',
+        'cosmetic-services',
+        'cosmetic-gallery',
+        'cosmetic-consultation',
+        'cosmetic-footer'
+      ],
+      layout: [
+        {
+          id: 'cosmetic-hero',
+          component: '<section class="relative bg-gradient-to-br from-rose-50 to-pink-50 py-20 lg:py-32"><div class="container mx-auto px-4"><div class="grid lg:grid-cols-2 gap-12 items-center"><div class="text-center lg:text-left"><div class="inline-flex items-center px-4 py-2 bg-rose-100 text-rose-800 rounded-full text-sm font-medium mb-6">✨ Award-Winning Cosmetic Dentistry</div><h1 class="text-4xl lg:text-6xl font-bold text-gray-900 mb-6">Transform Your Smile, <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-600 to-pink-600">Transform Your Life</span></h1><p class="text-xl text-gray-600 mb-8 leading-relaxed">Discover the confidence that comes with a perfect smile. Our advanced cosmetic dental procedures create stunning, natural-looking results that last a lifetime.</p><div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8"><button class="bg-gradient-to-r from-rose-600 to-pink-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:shadow-lg transition-all transform hover:scale-105">Free Smile Analysis</button><button class="border-2 border-rose-600 text-rose-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-rose-600 hover:text-white transition-all">View Gallery</button></div><div class="grid grid-cols-3 gap-6 text-center"><div class="bg-white p-4 rounded-xl shadow-lg"><div class="text-3xl font-bold text-rose-600">1000+</div><div class="text-sm text-gray-600">Smile Makeovers</div></div><div class="bg-white p-4 rounded-xl shadow-lg"><div class="text-3xl font-bold text-rose-600">98%</div><div class="text-sm text-gray-600">Satisfaction Rate</div></div><div class="bg-white p-4 rounded-xl shadow-lg"><div class="text-3xl font-bold text-rose-600">20+</div><div class="text-sm text-gray-600">Years Experience</div></div></div></div><div class="text-center relative"><img src="https://images.unsplash.com/photo-1606811971618-4486d14f3f99?w=600&h=500&fit=crop" alt="Beautiful Smile Transformation" class="rounded-2xl shadow-2xl mx-auto max-w-full h-auto"><div class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 bg-white px-6 py-3 rounded-full shadow-xl"><span class="text-rose-600 font-bold">🏆 Best Cosmetic Dentist 2024</span></div></div></div></div></section>'
+        },
+        {
+          id: 'cosmetic-services',
+          component: '<section class="py-20 bg-white"><div class="container mx-auto px-4"><div class="text-center mb-16"><h2 class="text-4xl font-bold text-gray-900 mb-4">Premium Cosmetic Services</h2><p class="text-xl text-gray-600 max-w-3xl mx-auto">Artistry meets science in our comprehensive cosmetic dental treatments. Each procedure is tailored to enhance your unique features.</p></div><div class="grid lg:grid-cols-2 gap-16 mb-16"><div class="bg-gradient-to-br from-rose-50 to-pink-50 p-8 rounded-2xl"><h3 class="text-2xl font-bold text-gray-900 mb-6">✨ Teeth Whitening</h3><p class="text-gray-600 mb-6">Professional whitening that delivers dramatically whiter teeth up to 8 shades brighter in just one visit.</p><div class="grid md:grid-cols-2 gap-4 mb-6"><div class="bg-white p-4 rounded-lg"><h4 class="font-bold text-gray-900 mb-2">In-Office</h4><ul class="text-sm text-gray-600 space-y-1"><li>• Results in 1 hour</li><li>• Up to 8 shades whiter</li><li>• Professional supervision</li><li>• Immediate results</li></ul></div><div class="bg-white p-4 rounded-lg"><h4 class="font-bold text-gray-900 mb-2">Take-Home</h4><ul class="text-sm text-gray-600 space-y-1"><li>• Custom-fitted trays</li><li>• Gradual whitening</li><li>• Convenience of home</li><li>• Long-lasting results</li></ul></div></div><button class="bg-rose-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-rose-700 transition-all">Learn More</button></div><div class="bg-gradient-to-br from-purple-50 to-indigo-50 p-8 rounded-2xl"><h3 class="text-2xl font-bold text-gray-900 mb-6">💎 Porcelain Veneers</h3><p class="text-gray-600 mb-6">Ultra-thin porcelain shells that cover imperfections and create a perfect, natural-looking smile.</p><div class="space-y-4 mb-6"><div class="flex items-center gap-3"><span class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">✓</span><span class="text-gray-700">Corrects chips, cracks, and gaps</span></div><div class="flex items-center gap-3"><span class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">✓</span><span class="text-gray-700">Stain-resistant and durable</span></div><div class="flex items-center gap-3"><span class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">✓</span><span class="text-gray-700">Natural appearance</span></div><div class="flex items-center gap-3"><span class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">✓</span><span class="text-gray-700">Lasts 15-20 years</span></div></div><button class="bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-all">Learn More</button></div></div><div class="grid md:grid-cols-3 gap-8"><div class="text-center group"><div class="w-20 h-20 bg-gradient-to-br from-rose-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-all"><span class="text-3xl">🎨</span></div><h3 class="text-xl font-bold text-gray-900 mb-3">Smile Design</h3><p class="text-gray-600">Comprehensive smile makeovers using digital technology to plan your perfect smile.</p></div><div class="text-center group"><div class="w-20 h-20 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-all"><span class="text-3xl">🔧</span></div><h3 class="text-xl font-bold text-gray-900 mb-3">Dental Bonding</h3><p class="text-gray-600">Quick and affordable solution for minor imperfections using tooth-colored composite resin.</p></div><div class="text-center group"><div class="w-20 h-20 bg-gradient-to-br from-green-100 to-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-all"><span class="text-3xl">✂️</span></div><h3 class="text-xl font-bold text-gray-900 mb-3">Gum Contouring</h3><p class="text-gray-600">Reshape your gum line for a more balanced and proportionate smile appearance.</p></div></div></div></section>'
+        },
+        {
+          id: 'cosmetic-consultation',
+          component: '<section class="py-20 bg-gradient-to-br from-rose-600 to-pink-600 text-white"><div class="container mx-auto px-4"><div class="grid lg:grid-cols-2 gap-12 items-center"><div><h2 class="text-4xl font-bold mb-6">Start Your Smile Transformation</h2><p class="text-xl text-rose-100 mb-8 leading-relaxed">Book your complimentary smile analysis and discover how we can enhance your natural beauty with personalized cosmetic treatments.</p><div class="space-y-6"><div class="flex items-center gap-4"><div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center"><span class="text-2xl">📸</span></div><div><h3 class="font-bold text-white text-lg">Digital Smile Analysis</h3><p class="text-rose-100">Advanced imaging to visualize your new smile</p></div></div><div class="flex items-center gap-4"><div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center"><span class="text-2xl">💰</span></div><div><h3 class="font-bold text-white text-lg">Flexible Financing</h3><p class="text-rose-100">0% interest payment plans available</p></div></div><div class="flex items-center gap-4"><div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center"><span class="text-2xl">🎯</span></div><div><h3 class="font-bold text-white text-lg">Personalized Treatment</h3><p class="text-rose-100">Custom approach for your unique goals</p></div></div></div></div><div class="bg-white p-8 rounded-2xl shadow-2xl"><h3 class="text-2xl font-bold text-gray-900 mb-6">Free Smile Consultation</h3><form class="space-y-4"><div class="grid md:grid-cols-2 gap-4"><input type="text" placeholder="First Name" class="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-rose-600 focus:border-transparent"><input type="text" placeholder="Last Name" class="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-rose-600 focus:border-transparent"></div><input type="email" placeholder="Email Address" class="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-rose-600 focus:border-transparent"><input type="tel" placeholder="Phone Number" class="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-rose-600 focus:border-transparent"><select class="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-rose-600 focus:border-transparent"><option>What are you most interested in?</option><option>Teeth Whitening</option><option>Porcelain Veneers</option><option>Complete Smile Makeover</option><option>Dental Bonding</option><option>Gum Contouring</option><option>General Consultation</option></select><textarea placeholder="Tell us about your smile goals and concerns..." rows="3" class="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-rose-600 focus:border-transparent"></textarea><div class="flex items-center gap-3 text-sm text-gray-600"><input type="checkbox" class="w-4 h-4 text-rose-600"><span>I\'m interested in financing options</span></div><button type="submit" class="w-full bg-gradient-to-r from-rose-600 to-pink-600 text-white py-4 rounded-lg font-semibold text-lg hover:shadow-lg transition-all">Book Free Consultation</button></form><p class="text-sm text-gray-500 text-center mt-4">* Includes digital smile analysis and treatment planning ($200 value)</p></div></div></div></section>'
+        },
+        {
+          id: 'cosmetic-footer',
+          component: '<footer class="bg-gray-900 text-white py-16"><div class="container mx-auto px-4"><div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12"><div><h3 class="text-xl font-bold mb-6">✨ Radiant Smiles Cosmetic Dentistry</h3><p class="text-gray-300 mb-6 leading-relaxed">Artistry and precision in cosmetic dentistry. Creating beautiful, confident smiles that transform lives through advanced aesthetic procedures.</p><div class="flex gap-4"><a href="#" class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-rose-600 transition-all"><span class="text-sm">f</span></a><a href="#" class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-rose-600 transition-all"><span class="text-sm">ig</span></a><a href="#" class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-rose-600 transition-all"><span class="text-sm">yt</span></a></div></div><div><h3 class="text-xl font-bold mb-6">Cosmetic Services</h3><ul class="space-y-3 text-gray-300"><li><a href="#" class="hover:text-rose-400 transition-all">Teeth Whitening</a></li><li><a href="#" class="hover:text-rose-400 transition-all">Porcelain Veneers</a></li><li><a href="#" class="hover:text-rose-400 transition-all">Smile Makeovers</a></li><li><a href="#" class="hover:text-rose-400 transition-all">Dental Bonding</a></li><li><a href="#" class="hover:text-rose-400 transition-all">Gum Contouring</a></li></ul></div><div><h3 class="text-xl font-bold mb-6">Contact Info</h3><div class="space-y-3 text-gray-300"><div class="flex items-center gap-3"><span class="text-rose-400">📍</span><span>321 Beauty Boulevard<br>Smile City, SC 13579</span></div><div class="flex items-center gap-3"><span class="text-rose-400">📞</span><span>(555) RADIANT<br>(555) 723-4268</span></div><div class="flex items-center gap-3"><span class="text-rose-400">✉️</span><span>smile@radiantsmiles.com</span></div></div></div><div><h3 class="text-xl font-bold mb-6">Office Hours</h3><div class="space-y-2 text-gray-300"><div class="flex justify-between"><span>Monday - Thursday</span><span class="text-rose-400">8AM - 6PM</span></div><div class="flex justify-between"><span>Friday</span><span class="text-rose-400">8AM - 4PM</span></div><div class="flex justify-between"><span>Saturday</span><span class="text-rose-400">9AM - 3PM</span></div><div class="flex justify-between"><span>Sunday</span><span class="text-rose-400">Closed</span></div></div></div></div><div class="border-t border-gray-800 pt-8"><div class="flex flex-col md:flex-row justify-between items-center gap-4"><p class="text-gray-400">© 2024 Radiant Smiles Cosmetic Dentistry. All rights reserved.</p><div class="flex gap-6 text-gray-400 text-sm"><a href="#" class="hover:text-rose-400 transition-all">Privacy Policy</a><a href="#" class="hover:text-rose-400 transition-all">Terms of Service</a><a href="#" class="hover:text-rose-400 transition-all">Smile Gallery</a></div></div></div></div></footer>'
+        }
+      ]
+    }
+  ];
 
   if (isLoading) {
     return (
@@ -640,6 +897,9 @@ const SimpleDragDropBuilder = () => {
                 Publish
               </Button>
 
+              <IconButton color="inherit" onClick={handleTemplateSelection} title="Load Template">
+                <TemplateIcon />
+              </IconButton>
               <IconButton color="inherit" onClick={() => setSettingsDialogOpen(true)}>
                 <SettingsIcon />
               </IconButton>
@@ -679,7 +939,7 @@ const SimpleDragDropBuilder = () => {
                     onChange={(e) => setSelectedCategory(e.target.value)}
                     label="Category"
                   >
-                    {categories.map(cat => (
+                    {(categories || []).map(cat => (
                       <MenuItem key={cat.value} value={cat.value}>
                         {cat.label}
                       </MenuItem>
@@ -692,7 +952,7 @@ const SimpleDragDropBuilder = () => {
                   Filter by tags:
                 </Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 2 }}>
-                  {availableTags.map(tag => (
+                  {(availableTags || []).map(tag => (
                     <Chip
                       key={tag}
                       label={tag}
@@ -726,8 +986,15 @@ const SimpleDragDropBuilder = () => {
                   {filteredComponents.length} components available
                 </Typography>
 
+                {/* Debug info */}
+                {process.env.NODE_ENV === 'development' && (
+                  <Typography variant="caption" color="info.main" sx={{ display: 'block', mb: 1 }}>
+                    Debug: {components.length} total, {filteredComponents.length} filtered, category: {selectedCategory}
+                  </Typography>
+                )}
+
                 <Grid container spacing={1}>
-                  {filteredComponents.map((component) => (
+                  {(filteredComponents || []).map((component) => (
                     <Grid item xs={12} key={component.id}>
                       <Card
                         sx={{
@@ -763,7 +1030,7 @@ const SimpleDragDropBuilder = () => {
                                 color="primary"
                                 variant="outlined"
                               />
-                              {component.tags?.slice(0, 2).map(tag => (
+                              {(component.tags?.slice(0, 2) || []).map(tag => (
                                 <Chip
                                   key={tag}
                                   label={tag}
@@ -866,7 +1133,7 @@ const SimpleDragDropBuilder = () => {
                   )
                 ) : (
                   <Box>
-                    {canvasComponents.map((component) => (
+                    {(canvasComponents || []).map((component) => (
                       <Box
                         key={component.instanceId}
                         sx={{
@@ -983,7 +1250,7 @@ const SimpleDragDropBuilder = () => {
                     Tags:
                   </Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 2 }}>
-                    {selectedComponent.tags?.map(tag => (
+                    {(selectedComponent.tags || []).map(tag => (
                       <Chip key={tag} label={tag} size="small" variant="outlined" />
                     ))}
                   </Box>
@@ -1100,7 +1367,7 @@ const SimpleDragDropBuilder = () => {
 
             {extractedTexts.length > 0 ? (
               <Stack spacing={3}>
-                {extractedTexts.map((textItem, index) => (
+                {(extractedTexts || []).map((textItem, index) => (
                   <Box key={textItem.id}>
                     <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
                       {textItem.element.toUpperCase()} element #{index + 1}
@@ -1190,7 +1457,7 @@ const SimpleDragDropBuilder = () => {
                       color="primary"
                       variant="filled"
                     />
-                    {previewComponent.tags?.map(tag => (
+                    {(previewComponent.tags || []).map(tag => (
                       <Chip
                         key={tag}
                         label={tag}
@@ -1429,6 +1696,174 @@ const SimpleDragDropBuilder = () => {
               }}
             >
               Browse Stock Photos
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Template Selection Dialog */}
+        <Dialog
+          open={templateDialogOpen}
+          onClose={() => setTemplateDialogOpen(false)}
+          maxWidth="xl"
+          fullWidth
+          sx={{
+            '& .MuiDialog-paper': {
+              minHeight: '80vh'
+            }
+          }}
+        >
+          <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <MagicIcon sx={{ mr: 1 }} />
+              Choose Your Perfect Dental Website
+            </Box>
+            <IconButton onClick={() => setTemplateDialogOpen(false)}>
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+
+          <DialogContent sx={{ p: 4 }}>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 4, textAlign: 'center' }}>
+              Select from our professionally designed dental website templates. Each template is fully customizable and optimized for dental practices.
+            </Typography>
+
+            <Grid container spacing={4}>
+              {(dentalWebsiteTemplates || []).map((template) => (
+                <Grid item xs={12} md={6} lg={4} key={template.id}>
+                  <Card
+                    sx={{
+                      height: '100%',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        transform: 'translateY(-8px)',
+                        boxShadow: 6
+                      },
+                      border: selectedTemplate?.id === template.id ? '2px solid' : '2px solid transparent',
+                      borderColor: selectedTemplate?.id === template.id ? 'primary.main' : 'transparent'
+                    }}
+                    onClick={() => setSelectedTemplate(template)}
+                  >
+                    <Box sx={{ position: 'relative', height: 200, bgcolor: 'grey.100' }}>
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          inset: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          background: `linear-gradient(135deg, ${template.colors?.primary || template.primaryColor || '#2563eb'}20, ${template.colors?.primary || template.primaryColor || '#2563eb'}40)`
+                        }}
+                      >
+                        <Box sx={{ textAlign: 'center' }}>
+                          <Typography variant="h4" sx={{ mb: 1 }}>
+                            🦷
+                          </Typography>
+                          <Typography variant="h6" fontWeight="bold">
+                            {template.siteName || template.name}
+                          </Typography>
+                        </Box>
+                      </Box>
+                      {selectedTemplate?.id === template.id && (
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: 8,
+                            right: 8,
+                            width: 32,
+                            height: 32,
+                            bgcolor: 'primary.main',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white'
+                          }}
+                        >
+                          ✓
+                        </Box>
+                      )}
+                    </Box>
+                    <CardContent sx={{ p: 3 }}>
+                      <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>
+                        {template.name}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        {template.description}
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                        <Box
+                          sx={{
+                            width: 16,
+                            height: 16,
+                            borderRadius: '50%',
+                            bgcolor: template.colors?.primary || template.primaryColor || '#2563eb'
+                          }}
+                        />
+                        <Typography variant="caption" color="text.secondary">
+                          {(template.components || template.sections || []).length} Sections
+                        </Typography>
+                      </Box>
+                      <Button
+                        fullWidth
+                        variant={selectedTemplate?.id === template.id ? 'contained' : 'outlined'}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          loadTemplate(template);
+                        }}
+                        disabled={loadingTemplate}
+                      >
+                        {loadingTemplate ? 'Loading...' : 'Use This Template'}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+
+            <Box sx={{ mt: 4, p: 3, bgcolor: 'blue.50', borderRadius: 2 }}>
+              <Typography variant="subtitle2" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
+                <MagicIcon sx={{ mr: 1 }} />
+                Template Features:
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Typography variant="body2" color="text.secondary">
+                    ✨ Modern animations and effects
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Typography variant="body2" color="text.secondary">
+                    📱 Fully responsive design
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Typography variant="body2" color="text.secondary">
+                    🎨 Customizable colors and fonts
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Typography variant="body2" color="text.secondary">
+                    🦷 Dental-specific content
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Box>
+          </DialogContent>
+
+          <DialogActions sx={{ p: 3 }}>
+            <Button onClick={() => setTemplateDialogOpen(false)}>Cancel</Button>
+            <Button
+              onClick={() => {
+                if (selectedTemplate) {
+                  loadTemplate(selectedTemplate);
+                }
+              }}
+              variant="contained"
+              disabled={!selectedTemplate || loadingTemplate}
+              startIcon={loadingTemplate ? <CircularProgress size={16} /> : <MagicIcon />}
+            >
+              {loadingTemplate ? 'Loading Template...' : 'Load Selected Template'}
             </Button>
           </DialogActions>
         </Dialog>
