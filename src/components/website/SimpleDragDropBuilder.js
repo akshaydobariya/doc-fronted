@@ -44,7 +44,7 @@ import {
   Toolbar,
   Typography
 } from '@mui/material';
-import { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import websiteService from '../../services/websiteService';
 import PageBuilderErrorBoundary from './PageBuilderErrorBoundary';
@@ -97,6 +97,13 @@ const SimpleDragDropBuilder = () => {
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [loadingTemplate, setLoadingTemplate] = useState(false);
+
+  // Iframe interaction state
+  const [interactionDialogOpen, setInteractionDialogOpen] = useState(false);
+  const [editingInteractionComponent, setEditingInteractionComponent] = useState(null);
+  const [iframeUrl, setIframeUrl] = useState('');
+  const [iframeModalOpen, setIframeModalOpen] = useState(false);
+  const [currentIframeUrl, setCurrentIframeUrl] = useState('');
 
   // Debug effect to catch rendering errors
   useEffect(() => {
@@ -561,6 +568,72 @@ const SimpleDragDropBuilder = () => {
     setImageUploadDialogOpen(true);
   };
 
+  // Interaction editing functions
+  const handleInteractionEdit = (component) => {
+    setEditingInteractionComponent(component);
+    setIframeUrl('');
+    setInteractionDialogOpen(true);
+  };
+
+  const handleSaveInteraction = () => {
+    if (!editingInteractionComponent || !iframeUrl.trim()) {
+      showSnackbar('Please enter a valid iframe URL', 'error');
+      return;
+    }
+
+    // Update the component with iframe functionality
+    const updatedComponent = { ...editingInteractionComponent };
+
+    // Add iframe functionality to buttons in the component
+    let updatedHTML = updatedComponent.component;
+
+    // Find all buttons and add onclick handlers
+    updatedHTML = updatedHTML.replace(
+      /<button([^>]*?)>(.*?)<\/button>/gi,
+      (match, attributes, content) => {
+        // Check if button text contains booking-related keywords
+        if (content.toLowerCase().includes('book') ||
+            content.toLowerCase().includes('appointment') ||
+            content.toLowerCase().includes('schedule')) {
+          return `<button${attributes} onclick="window.openBookingIframe('${iframeUrl}')">${content}</button>`;
+        }
+        return match;
+      }
+    );
+
+    updatedComponent.component = updatedHTML;
+    updatedComponent.hasIframeInteraction = true;
+    updatedComponent.iframeUrl = iframeUrl;
+
+    // Update the canvas component
+    setCanvasComponents(prev =>
+      prev.map(comp =>
+        comp.instanceId === editingInteractionComponent.instanceId
+          ? updatedComponent
+          : comp
+      )
+    );
+
+    setInteractionDialogOpen(false);
+    setEditingInteractionComponent(null);
+    setIframeUrl('');
+    showSnackbar('Iframe interaction added successfully!');
+  };
+
+  // Global function to open iframe modal
+  const openBookingIframe = (url) => {
+    setCurrentIframeUrl(url);
+    setIframeModalOpen(true);
+  };
+
+  // Make the function globally available
+  React.useEffect(() => {
+    window.openBookingIframe = openBookingIframe;
+    return () => {
+      delete window.openBookingIframe;
+    };
+  }, []);
+
   const handleImageFileUpload = async (file) => {
     try {
 
@@ -609,6 +682,16 @@ const SimpleDragDropBuilder = () => {
     const doc = parser.parseFromString(component.component, 'text/html');
     const images = Array.from(doc.querySelectorAll('img'));
     return images.length > 0;
+  };
+
+  const hasBookingButtons = (component) => {
+    if (!component || !component.component) return false;
+    const buttonContent = component.component.toLowerCase();
+    return buttonContent.includes('<button') && (
+      buttonContent.includes('book') ||
+      buttonContent.includes('appointment') ||
+      buttonContent.includes('schedule')
+    );
   };
 
   // Template functions
@@ -1276,6 +1359,17 @@ const SimpleDragDropBuilder = () => {
                         Upload Image
                       </Button>
                     )}
+                    {hasBookingButtons(selectedComponent) && (
+                      <Button
+                        fullWidth
+                        variant="contained"
+                        sx={{ bgcolor: 'purple.main', '&:hover': { bgcolor: 'purple.dark' } }}
+                        onClick={() => handleInteractionEdit(selectedComponent)}
+                        startIcon={<SettingsIcon />}
+                      >
+                        Add Booking Iframe
+                      </Button>
+                    )}
                     <Button
                       fullWidth
                       variant="outlined"
@@ -1866,6 +1960,75 @@ const SimpleDragDropBuilder = () => {
               {loadingTemplate ? 'Loading Template...' : 'Load Selected Template'}
             </Button>
           </DialogActions>
+        </Dialog>
+
+        {/* Iframe Interaction Dialog */}
+        <Dialog open={interactionDialogOpen} onClose={() => setInteractionDialogOpen(false)} maxWidth="md" fullWidth>
+          <DialogTitle sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            Add Booking Iframe to Buttons
+          </DialogTitle>
+          <DialogContent sx={{ p: 3 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Add iframe functionality to booking buttons in this component. When users click on booking buttons,
+              an iframe modal will open with your booking system.
+            </Typography>
+
+            <TextField
+              fullWidth
+              label="Iframe URL"
+              placeholder="https://your-booking-system.com/embed"
+              value={iframeUrl}
+              onChange={(e) => setIframeUrl(e.target.value)}
+              variant="outlined"
+              sx={{ mb: 2 }}
+              helperText="Enter the URL of your booking system that will be displayed in the iframe"
+            />
+
+            <Alert severity="info" sx={{ mt: 2 }}>
+              This will automatically add click handlers to buttons containing words like "Book", "Appointment", or "Schedule"
+            </Alert>
+          </DialogContent>
+          <DialogActions sx={{ p: 3 }}>
+            <Button onClick={() => setInteractionDialogOpen(false)}>Cancel</Button>
+            <Button
+              onClick={handleSaveInteraction}
+              variant="contained"
+              disabled={!iframeUrl.trim()}
+            >
+              Add Iframe Interaction
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Iframe Modal */}
+        <Dialog
+          open={iframeModalOpen}
+          onClose={() => setIframeModalOpen(false)}
+          maxWidth="lg"
+          fullWidth
+          PaperProps={{
+            sx: { height: '90vh' }
+          }}
+        >
+          <DialogTitle sx={{ borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            Book Your Appointment
+            <IconButton onClick={() => setIframeModalOpen(false)}>
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent sx={{ p: 0, height: '100%' }}>
+            {currentIframeUrl && (
+              <iframe
+                src={currentIframeUrl}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  border: 'none'
+                }}
+                title="Booking System"
+              />
+            )}
+          </DialogContent>
         </Dialog>
 
         {/* Snackbar */}
