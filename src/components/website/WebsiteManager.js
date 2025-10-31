@@ -12,7 +12,9 @@ import {
   Search as SearchIcon,
   Sort as SortIcon,
   History as VersionIcon,
-  Web as WebIcon
+  Web as WebIcon,
+  MedicalServices as ServiceIcon,
+  EditNote as EditServiceIcon
 } from '@mui/icons-material';
 import {
   Alert,
@@ -42,6 +44,8 @@ import {
   Paper,
   Select,
   Snackbar,
+  Tab,
+  Tabs,
   TextField,
   Tooltip,
   Typography
@@ -49,6 +53,8 @@ import {
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import websiteService from '../../services/websiteService';
+import { servicePageService } from '../../services/servicePageService';
+import UnifiedContentService from '../../services/unifiedContentService';
 
 const WebsiteManager = () => {
   const navigate = useNavigate();
@@ -60,6 +66,16 @@ const WebsiteManager = () => {
   const [selectedWebsite, setSelectedWebsite] = useState(null);
   const [versions, setVersions] = useState([]);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+
+  // Tab management
+  const [activeTab, setActiveTab] = useState(0); // 0 = Websites, 1 = Service Pages
+
+  // Service pages state
+  const [servicePages, setServicePages] = useState([]);
+  const [filteredServicePages, setFilteredServicePages] = useState([]);
+  const [servicePageLoading, setServicePageLoading] = useState(false);
+  const [selectedWebsiteForServices, setSelectedWebsiteForServices] = useState(null);
+  const [unifiedContentStatuses, setUnifiedContentStatuses] = useState({});
 
   // Filter state
   const [searchTerm, setSearchTerm] = useState('');
@@ -148,6 +164,84 @@ const WebsiteManager = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadServicePages = async (websiteId) => {
+    try {
+      setServicePageLoading(true);
+      const response = await servicePageService.getServicePages(websiteId, {
+        includeAnalytics: true
+      });
+
+      if (response.success) {
+        const pages = response.data || [];
+        setServicePages(pages);
+        setFilteredServicePages(pages);
+
+        // Load unified content statuses for each service page
+        await loadUnifiedContentStatuses(pages);
+      }
+    } catch (error) {
+      console.error('Error loading service pages:', error);
+      showSnackbar('Error loading service pages: ' + error.message, 'error');
+    } finally {
+      setServicePageLoading(false);
+    }
+  };
+
+  const loadUnifiedContentStatuses = async (pages) => {
+    const statuses = {};
+
+    // Load unified content status for each page
+    await Promise.allSettled(
+      pages.map(async (page) => {
+        try {
+          const unifiedContent = await UnifiedContentService.getByServicePage(page._id);
+          if (unifiedContent) {
+            statuses[page._id] = {
+              exists: true,
+              syncStatus: unifiedContent.syncStatus,
+              conflicts: unifiedContent.conflicts?.length || 0,
+              aiSuggestions: unifiedContent.aiSuggestions?.filter(s => s.status === 'pending').length || 0,
+              lastSync: unifiedContent.lastModified
+            };
+          } else {
+            statuses[page._id] = { exists: false };
+          }
+        } catch (error) {
+          console.warn(`No unified content found for page ${page._id}:`, error);
+          statuses[page._id] = { exists: false };
+        }
+      })
+    );
+
+    setUnifiedContentStatuses(statuses);
+  };
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+
+    // Load service pages when switching to service pages tab
+    if (newValue === 1) {
+      // If no website is selected for services, select the first one
+      if (!selectedWebsiteForServices && websites.length > 0) {
+        const firstWebsite = websites[0];
+        setSelectedWebsiteForServices(firstWebsite);
+        loadServicePages(firstWebsite._id);
+      } else if (selectedWebsiteForServices) {
+        loadServicePages(selectedWebsiteForServices._id);
+      }
+    }
+  };
+
+  const handleWebsiteSelectionForServices = (website) => {
+    setSelectedWebsiteForServices(website);
+    loadServicePages(website._id);
+  };
+
+  const handleEditServicePage = (servicePageId) => {
+    // Navigate to Destack editor with service page context and unified content support
+    navigate(`/full-destack-editor?servicePageId=${servicePageId}&mode=service&websiteId=${selectedWebsiteForServices._id}`);
   };
 
   const showSnackbar = (message, severity = 'success') => {
@@ -440,24 +534,53 @@ const WebsiteManager = () => {
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4 }}>
         <Box>
           <Typography variant="h4" component="h1" sx={{ fontWeight: 700, mb: 1 }}>
-            My Websites
+            {activeTab === 0 ? 'My Websites' : 'Service Pages'}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Manage your professional websites and online presence
+            {activeTab === 0
+              ? 'Manage your professional websites and online presence'
+              : 'Edit and customize your dental service pages'
+            }
           </Typography>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setCreateDialogOpen(true)}
-          sx={{ borderRadius: 2 }}
-        >
-          Create Website
-        </Button>
+        {activeTab === 0 && (
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setCreateDialogOpen(true)}
+            sx={{ borderRadius: 2 }}
+          >
+            Create Website
+          </Button>
+        )}
       </Box>
 
-      {/* Filter and Search Section */}
-      <Paper sx={{ p: 3, mb: 4, bgcolor: 'grey.50' }}>
+      {/* Tabs */}
+      <Paper sx={{ mb: 3 }}>
+        <Tabs
+          value={activeTab}
+          onChange={handleTabChange}
+          indicatorColor="primary"
+          textColor="primary"
+        >
+          <Tab
+            icon={<WebIcon />}
+            label="Websites"
+            iconPosition="start"
+          />
+          <Tab
+            icon={<ServiceIcon />}
+            label="Service Pages"
+            iconPosition="start"
+          />
+        </Tabs>
+      </Paper>
+
+      {/* Websites Tab Content */}
+      {activeTab === 0 && (
+        <>
+          {/* Filter and Search Section */}
+          <Paper sx={{ p: 3, mb: 4, bgcolor: 'grey.50' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
           <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center' }}>
             <FilterIcon sx={{ mr: 1 }} />
@@ -632,6 +755,202 @@ const WebsiteManager = () => {
             ))}
           </Grid>
         </Fade>
+      )}
+
+        </>
+      )}
+
+      {/* Service Pages Tab Content */}
+      {activeTab === 1 && (
+        <>
+          {/* Website Selector for Service Pages */}
+          {websites.length > 0 && (
+            <Paper sx={{ p: 3, mb: 4 }}>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="h6" sx={{ mb: 2 }}>
+                  Select Website
+                </Typography>
+                <FormControl fullWidth>
+                  <InputLabel>Choose a website to manage service pages</InputLabel>
+                  <Select
+                    value={selectedWebsiteForServices?._id || ''}
+                    onChange={(e) => {
+                      const website = websites.find(w => w._id === e.target.value);
+                      handleWebsiteSelectionForServices(website);
+                    }}
+                    label="Choose a website to manage service pages"
+                  >
+                    {websites.map((website) => (
+                      <MenuItem key={website._id} value={website._id}>
+                        {website.name} ({website.subdomain})
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+            </Paper>
+          )}
+
+          {/* Service Pages List */}
+          {selectedWebsiteForServices && (
+            <Paper sx={{ p: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                <Typography variant="h6">
+                  Service Pages for {selectedWebsiteForServices.name}
+                </Typography>
+              </Box>
+
+              {servicePageLoading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                  <CircularProgress />
+                </Box>
+              ) : filteredServicePages.length === 0 ? (
+                <Box sx={{ textAlign: 'center', py: 6 }}>
+                  <ServiceIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+                  <Typography variant="h6" color="text.secondary" gutterBottom>
+                    No service pages found
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                    Create service pages using the service management section
+                  </Typography>
+                </Box>
+              ) : (
+                <Grid container spacing={3}>
+                  {filteredServicePages.map((servicePage) => (
+                    <Grid item xs={12} sm={6} md={4} key={servicePage._id}>
+                      <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                        <CardContent sx={{ flexGrow: 1 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                            <Typography variant="h6" component="h2" noWrap>
+                              {servicePage.title}
+                            </Typography>
+                            <Chip
+                              label={servicePage.status}
+                              size="small"
+                              color={servicePage.status === 'published' ? 'success' : 'warning'}
+                            />
+                          </Box>
+
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                            {servicePage.serviceId?.name || 'Unknown Service'}
+                          </Typography>
+
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                            Version: {servicePage.currentVersion}
+                          </Typography>
+
+                          {/* Unified Content Status Indicators */}
+                          {(() => {
+                            const unifiedStatus = unifiedContentStatuses[servicePage._id];
+                            if (!unifiedStatus) {
+                              return (
+                                <Box sx={{ mb: 2 }}>
+                                  <Chip
+                                    size="small"
+                                    label="Loading..."
+                                    color="default"
+                                    variant="outlined"
+                                  />
+                                </Box>
+                              );
+                            }
+
+                            if (!unifiedStatus.exists) {
+                              return (
+                                <Box sx={{ mb: 2 }}>
+                                  <Chip
+                                    size="small"
+                                    label="Static Content"
+                                    color="default"
+                                    variant="outlined"
+                                  />
+                                </Box>
+                              );
+                            }
+
+                            const isSynced = unifiedStatus.syncStatus?.contentToVisual?.status === 'synced' &&
+                                           unifiedStatus.syncStatus?.visualToContent?.status === 'synced';
+
+                            return (
+                              <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                <Chip
+                                  size="small"
+                                  label="Unified Content"
+                                  color="primary"
+                                  variant="filled"
+                                />
+                                <Chip
+                                  size="small"
+                                  label={isSynced ? 'Synced' : 'Needs Sync'}
+                                  color={isSynced ? 'success' : 'warning'}
+                                  variant="outlined"
+                                />
+                                {unifiedStatus.conflicts > 0 && (
+                                  <Chip
+                                    size="small"
+                                    label={`${unifiedStatus.conflicts} Conflicts`}
+                                    color="error"
+                                    variant="filled"
+                                  />
+                                )}
+                                {unifiedStatus.aiSuggestions > 0 && (
+                                  <Chip
+                                    size="small"
+                                    label={`${unifiedStatus.aiSuggestions} AI Suggestions`}
+                                    color="info"
+                                    variant="outlined"
+                                  />
+                                )}
+                              </Box>
+                            );
+                          })()}
+
+                          <Typography variant="caption" color="text.secondary">
+                            Last modified: {new Date(servicePage.lastModified).toLocaleDateString()}
+                          </Typography>
+                        </CardContent>
+
+                        <CardActions sx={{ p: 2, pt: 0 }}>
+                          <Button
+                            size="small"
+                            startIcon={<EditServiceIcon />}
+                            onClick={() => handleEditServicePage(servicePage._id)}
+                            variant="contained"
+                            fullWidth
+                          >
+                            Edit Service Page
+                          </Button>
+                        </CardActions>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+              )}
+            </Paper>
+          )}
+
+          {!selectedWebsiteForServices && websites.length === 0 && (
+            <Paper sx={{ p: 6, textAlign: 'center' }}>
+              <WebIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                No websites found
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Create a website first to manage service pages
+              </Typography>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => {
+                  setActiveTab(0);
+                  setCreateDialogOpen(true);
+                }}
+              >
+                Create Website
+              </Button>
+            </Paper>
+          )}
+        </>
       )}
 
       {/* Create Website Dialog */}

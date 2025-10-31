@@ -1,0 +1,359 @@
+/**
+ * Default Dental Services Configuration
+ * This provides a fallback list of services when the database is empty
+ */
+
+export const defaultDentalServices = [
+  // General Dentistry
+  {
+    id: 'general-cleaning',
+    name: 'Dental Cleaning & Hygiene',
+    category: 'general-dentistry',
+    description: 'Professional teeth cleaning, plaque removal, and oral hygiene maintenance.',
+    shortDescription: 'Regular dental cleanings to maintain optimal oral health',
+    pricing: {
+      basePrice: 150,
+      currency: 'USD',
+      priceRange: { min: 120, max: 200 }
+    },
+    duration: '60 minutes',
+    benefits: [
+      'Removes plaque and tartar buildup',
+      'Prevents gum disease',
+      'Freshens breath',
+      'Early detection of dental issues'
+    ],
+    isActive: true
+  },
+  {
+    id: 'general-examination',
+    name: 'Comprehensive Dental Examination',
+    category: 'general-dentistry',
+    description: 'Thorough oral health assessment including X-rays and examination.',
+    shortDescription: 'Complete dental checkup and oral health assessment',
+    pricing: {
+      basePrice: 200,
+      currency: 'USD',
+      priceRange: { min: 150, max: 300 }
+    },
+    duration: '45 minutes',
+    benefits: [
+      'Early problem detection',
+      'Personalized treatment planning',
+      'X-ray analysis',
+      'Oral cancer screening'
+    ],
+    isActive: true
+  },
+  {
+    id: 'dental-fillings',
+    name: 'Dental Fillings',
+    category: 'general-dentistry',
+    description: 'Tooth-colored composite fillings to restore damaged teeth.',
+    shortDescription: 'Restore teeth with natural-looking composite fillings',
+    pricing: {
+      basePrice: 250,
+      currency: 'USD',
+      priceRange: { min: 200, max: 400 }
+    },
+    duration: '90 minutes',
+    benefits: [
+      'Restore tooth function',
+      'Natural appearance',
+      'Durable material',
+      'Prevent further decay'
+    ],
+    isActive: true
+  },
+
+  // Cosmetic Dentistry
+  {
+    id: 'teeth-whitening',
+    name: 'Professional Teeth Whitening',
+    category: 'cosmetic-dentistry',
+    description: 'Professional-grade whitening treatment for brighter, whiter teeth.',
+    shortDescription: 'Achieve a brighter, more confident smile',
+    pricing: {
+      basePrice: 500,
+      currency: 'USD',
+      priceRange: { min: 400, max: 800 }
+    },
+    duration: '90 minutes',
+    benefits: [
+      'Removes years of stains',
+      'Safe and effective',
+      'Immediate results',
+      'Boosts confidence'
+    ],
+    isActive: true
+  },
+  {
+    id: 'porcelain-veneers',
+    name: 'Porcelain Veneers',
+    category: 'cosmetic-dentistry',
+    description: 'Custom porcelain veneers to enhance your smile\'s appearance.',
+    shortDescription: 'Transform your smile with custom porcelain veneers',
+    pricing: {
+      basePrice: 1200,
+      currency: 'USD',
+      priceRange: { min: 1000, max: 1800 }
+    },
+    duration: '2-3 visits',
+    benefits: [
+      'Perfect smile transformation',
+      'Stain-resistant material',
+      'Natural appearance',
+      'Long-lasting results'
+    ],
+    isActive: true
+  },
+  {
+    id: 'smile-makeover',
+    name: 'Complete Smile Makeover',
+    category: 'cosmetic-dentistry',
+    description: 'Comprehensive cosmetic treatment plan to transform your entire smile.',
+    shortDescription: 'Complete smile transformation with multiple treatments',
+    pricing: {
+      basePrice: 3000,
+      currency: 'USD',
+      priceRange: { min: 2500, max: 8000 }
+    },
+    duration: 'Multiple visits',
+    benefits: [
+      'Complete smile transformation',
+      'Customized treatment plan',
+      'Dramatic results',
+      'Improved confidence'
+    ],
+    isActive: true
+  },
+
+  // Restorative Dentistry
+  {
+    id: 'dental-crowns',
+    name: 'Dental Crowns',
+    category: 'restorative-dentistry',
+    description: 'Custom dental crowns to restore damaged or weakened teeth.',
+    shortDescription: 'Restore and strengthen damaged teeth with crowns',
+    pricing: {
+      basePrice: 1000,
+      currency: 'USD',
+      priceRange: { min: 800, max: 1500 }
+    },
+    duration: '2 visits',
+    benefits: [
+      'Restore tooth strength',
+      'Natural appearance',
+      'Long-lasting solution',
+      'Protects damaged teeth'
+    ],
+    isActive: true
+  },
+  {
+    id: 'dental-bridges',
+    name: 'Dental Bridges',
+    category: 'restorative-dentistry',
+    description: 'Fixed bridges to replace missing teeth and restore your smile.',
+    shortDescription: 'Replace missing teeth with natural-looking bridges',
+    pricing: {
+      basePrice: 1500,
+      currency: 'USD',
+      priceRange: { min: 1200, max: 2500 }
+    },
+    duration: '2-3 visits',
+    benefits: [
+      'Replace missing teeth',
+      'Restore chewing function',
+      'Prevent teeth shifting',
+      'Natural appearance'
+    ],
+    isActive: true
+  },
+  {
+    id: 'dental-implants',
+    name: 'Dental Implants',
+    category: 'restorative-dentistry',
+    description: 'Permanent tooth replacement with titanium implants and crowns.',
+    shortDescription: 'Permanent solution for missing teeth',
+    pricing: {
+      basePrice: 3000,
+      currency: 'USD',
+      priceRange: { min: 2500, max: 5000 }
+    },
+    duration: '3-6 months',
+    benefits: [
+      'Permanent solution',
+      'Looks and feels natural',
+      'Preserves jawbone',
+      'No impact on adjacent teeth'
+    ],
+    isActive: true
+  },
+
+  // Oral Surgery
+  {
+    id: 'tooth-extraction',
+    name: 'Tooth Extraction',
+    category: 'oral-surgery',
+    description: 'Safe and comfortable tooth removal when necessary.',
+    shortDescription: 'Professional tooth removal with minimal discomfort',
+    pricing: {
+      basePrice: 300,
+      currency: 'USD',
+      priceRange: { min: 200, max: 600 }
+    },
+    duration: '60 minutes',
+    benefits: [
+      'Relieves pain',
+      'Prevents infection',
+      'Minimally invasive',
+      'Quick recovery'
+    ],
+    isActive: true
+  },
+  {
+    id: 'wisdom-teeth',
+    name: 'Wisdom Teeth Removal',
+    category: 'oral-surgery',
+    description: 'Expert removal of problematic wisdom teeth.',
+    shortDescription: 'Safe removal of problematic wisdom teeth',
+    pricing: {
+      basePrice: 400,
+      currency: 'USD',
+      priceRange: { min: 300, max: 800 }
+    },
+    duration: '90 minutes',
+    benefits: [
+      'Prevents crowding',
+      'Reduces pain',
+      'Prevents complications',
+      'Improves oral health'
+    ],
+    isActive: true
+  },
+
+  // Orthodontics
+  {
+    id: 'traditional-braces',
+    name: 'Traditional Metal Braces',
+    category: 'orthodontics',
+    description: 'Effective metal braces for comprehensive teeth straightening.',
+    shortDescription: 'Reliable solution for straightening teeth',
+    pricing: {
+      basePrice: 4000,
+      currency: 'USD',
+      priceRange: { min: 3000, max: 6000 }
+    },
+    duration: '18-24 months',
+    benefits: [
+      'Effective for complex cases',
+      'Proven results',
+      'Comprehensive correction',
+      'Affordable option'
+    ],
+    isActive: true
+  },
+  {
+    id: 'clear-aligners',
+    name: 'Clear Aligners (Invisalign)',
+    category: 'orthodontics',
+    description: 'Nearly invisible aligners for discreet teeth straightening.',
+    shortDescription: 'Invisible solution for straighter teeth',
+    pricing: {
+      basePrice: 5000,
+      currency: 'USD',
+      priceRange: { min: 4000, max: 8000 }
+    },
+    duration: '12-18 months',
+    benefits: [
+      'Nearly invisible',
+      'Removable',
+      'Comfortable',
+      'Predictable results'
+    ],
+    isActive: true
+  },
+
+  // Pediatric Dentistry
+  {
+    id: 'children-cleaning',
+    name: 'Children\'s Dental Cleaning',
+    category: 'pediatric-dentistry',
+    description: 'Gentle dental care specifically designed for children.',
+    shortDescription: 'Gentle dental care for kids in a fun environment',
+    pricing: {
+      basePrice: 120,
+      currency: 'USD',
+      priceRange: { min: 100, max: 180 }
+    },
+    duration: '45 minutes',
+    benefits: [
+      'Child-friendly approach',
+      'Early habit formation',
+      'Prevents cavities',
+      'Fun experience'
+    ],
+    isActive: true
+  },
+  {
+    id: 'fluoride-treatment',
+    name: 'Fluoride Treatment',
+    category: 'pediatric-dentistry',
+    description: 'Professional fluoride application to strengthen children\'s teeth.',
+    shortDescription: 'Strengthen young teeth with fluoride treatment',
+    pricing: {
+      basePrice: 50,
+      currency: 'USD',
+      priceRange: { min: 40, max: 80 }
+    },
+    duration: '15 minutes',
+    benefits: [
+      'Strengthens enamel',
+      'Prevents cavities',
+      'Quick and easy',
+      'Long-lasting protection'
+    ],
+    isActive: true
+  }
+];
+
+export const serviceCategories = [
+  {
+    id: 'general-dentistry',
+    name: 'General Dentistry',
+    description: 'Essential dental care for maintaining oral health',
+    icon: '🦷'
+  },
+  {
+    id: 'cosmetic-dentistry',
+    name: 'Cosmetic Dentistry',
+    description: 'Enhance your smile\'s appearance and confidence',
+    icon: '✨'
+  },
+  {
+    id: 'restorative-dentistry',
+    name: 'Restorative Dentistry',
+    description: 'Repair and restore damaged or missing teeth',
+    icon: '🔧'
+  },
+  {
+    id: 'oral-surgery',
+    name: 'Oral Surgery',
+    description: 'Surgical procedures for complex dental issues',
+    icon: '⚕️'
+  },
+  {
+    id: 'orthodontics',
+    name: 'Orthodontics',
+    description: 'Straighten teeth and correct bite issues',
+    icon: '📐'
+  },
+  {
+    id: 'pediatric-dentistry',
+    name: 'Pediatric Dentistry',
+    description: 'Specialized dental care for children',
+    icon: '👶'
+  }
+];
+
+export default defaultDentalServices;

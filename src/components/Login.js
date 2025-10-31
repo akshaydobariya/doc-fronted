@@ -4,20 +4,16 @@ import {
   Box,
   Typography,
   Button,
-  Stack,
-  alpha,
-  useTheme
+  Stack
 } from '@mui/material';
 import {
   LocalHospital as HospitalIcon,
-  Person as PersonIcon,
   CalendarMonth as CalendarIcon
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 
 const Login = () => {
   const { login } = useAuth();
-  const theme = useTheme();
 
   return (
     <Box

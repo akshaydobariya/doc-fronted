@@ -14,6 +14,13 @@ import SimpleDragDropBuilder from './components/website/SimpleDragDropBuilder';
 import WebsiteManager from './components/website/WebsiteManager';
 import SimpleLandingPage from './pages/SimpleLandingPage';
 import ComponentTest from './components/website/ComponentTest';
+import ServicePage from './components/website/ServicePage';
+import ServicePageEditor from './components/website/ServicePageEditor';
+import UnifiedServiceEditor from './components/website/UnifiedServiceEditor';
+import ContentManager from './components/website/ContentManager';
+import AIAssistant from './components/website/AIAssistant';
+import PreviewPanel from './components/website/PreviewPanel';
+import ConflictResolution from './components/website/ConflictResolution';
 
 function App() {
   return (
@@ -49,8 +56,40 @@ function App() {
               element={<PrivateRoute component={SimpleDragDropBuilder} roles={['doctor']} />}
             />
 
+            {/* Service Page Editor - Protected for doctors */}
+            <Route
+              path="/edit-service-page/:servicePageId"
+              element={<PrivateRoute component={ServicePageEditor} roles={['doctor']} />}
+            />
+
+            {/* Unified Content Management Routes - Protected for doctors */}
+            <Route
+              path="/unified-service-editor/:servicePageId"
+              element={<PrivateRoute component={UnifiedServiceEditor} roles={['doctor']} />}
+            />
+            <Route
+              path="/content-manager/:servicePageId"
+              element={<PrivateRoute component={ContentManager} roles={['doctor']} />}
+            />
+            <Route
+              path="/ai-assistant/:servicePageId"
+              element={<PrivateRoute component={AIAssistant} roles={['doctor']} />}
+            />
+            <Route
+              path="/preview-panel/:servicePageId"
+              element={<PrivateRoute component={PreviewPanel} roles={['doctor']} />}
+            />
+            <Route
+              path="/conflict-resolution/:servicePageId"
+              element={<PrivateRoute component={ConflictResolution} roles={['doctor']} />}
+            />
+
             {/* Public Landing Page - Built with Destack */}
             <Route path="/landing" element={<SimpleLandingPage />} />
+
+            {/* Public Service Pages */}
+            <Route path="/services/:serviceSlug" element={<ServicePage />} />
+            <Route path="/website/:websiteId/services/:serviceSlug" element={<ServicePage />} />
 
             {/* Test Component */}
             <Route path="/test-components" element={<ComponentTest />} />
