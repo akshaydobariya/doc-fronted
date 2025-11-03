@@ -227,40 +227,6 @@ class WebsiteService {
     return website.deployment?.previewUrl || `https://preview-${website.subdomain}.docwebsite.app`;
   }
 
-  // Website templates
-  getAvailableTemplates() {
-    return [
-      {
-        id: 'dental-modern',
-        name: 'Modern Dental',
-        description: 'Clean, modern design perfect for dental practices',
-        preview: '/templates/dental-modern-preview.jpg',
-        category: 'Medical'
-      },
-      {
-        id: 'medical-classic',
-        name: 'Classic Medical',
-        description: 'Professional, trustworthy design for medical professionals',
-        preview: '/templates/medical-classic-preview.jpg',
-        category: 'Medical'
-      },
-      {
-        id: 'healthcare-minimal',
-        name: 'Minimal Healthcare',
-        description: 'Minimalist design focusing on content and accessibility',
-        preview: '/templates/healthcare-minimal-preview.jpg',
-        category: 'Medical'
-      },
-      {
-        id: 'custom',
-        name: 'Custom Design',
-        description: 'Start from scratch with a blank canvas',
-        preview: '/templates/custom-preview.jpg',
-        category: 'Custom'
-      }
-    ];
-  }
-
   // Website status colors and labels
   getStatusConfig() {
     return {

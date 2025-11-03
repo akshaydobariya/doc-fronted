@@ -5,16 +5,16 @@ import {
   ContentCopy as CopyIcon,
   Delete as DeleteIcon,
   Edit as EditIcon,
+  EditNote as EditServiceIcon,
   FilterList as FilterIcon,
   Visibility as PreviewIcon,
   Public as PublishIcon,
   Restore as RestoreIcon,
   Search as SearchIcon,
+  MedicalServices as ServiceIcon,
   Sort as SortIcon,
   History as VersionIcon,
-  Web as WebIcon,
-  MedicalServices as ServiceIcon,
-  EditNote as EditServiceIcon
+  Web as WebIcon
 } from '@mui/icons-material';
 import {
   Alert,
@@ -52,9 +52,9 @@ import {
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import websiteService from '../../services/websiteService';
 import { servicePageService } from '../../services/servicePageService';
 import UnifiedContentService from '../../services/unifiedContentService';
+import websiteService from '../../services/websiteService';
 
 const WebsiteManager = () => {
   const navigate = useNavigate();
@@ -64,11 +64,14 @@ const WebsiteManager = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [versionDialogOpen, setVersionDialogOpen] = useState(false);
   const [selectedWebsite, setSelectedWebsite] = useState(null);
-  const [versions, setVersions] = useState([]);
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-
-  // Tab management
-  const [activeTab, setActiveTab] = useState(0); // 0 = Websites, 1 = Service Pages
+    const [versions, setVersions] = useState([]);
+    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [websiteToDelete, setWebsiteToDelete] = useState(null);
+  
+  
+    // Tab management
+    const [activeTab, setActiveTab] = useState(0); // 0 = Websites, 1 = Service Pages
 
   // Service pages state
   const [servicePages, setServicePages] = useState([]);
@@ -89,7 +92,6 @@ const WebsiteManager = () => {
     name: '',
     description: '',
     subdomain: '',
-    template: 'dental-modern',
     customDomain: ''
   });
 
@@ -254,7 +256,6 @@ const WebsiteManager = () => {
       const errors = {};
       if (!createForm.name.trim()) errors.name = 'Name is required';
       if (!createForm.subdomain.trim()) errors.subdomain = 'Subdomain is required';
-      if (!createForm.template) errors.template = 'Template is required';
 
       if (Object.keys(errors).length > 0) {
         setCreateFormErrors(errors);
@@ -276,7 +277,6 @@ const WebsiteManager = () => {
         name: '',
         description: '',
         subdomain: '',
-        template: 'dental-modern',
         customDomain: ''
       });
       setCreateFormErrors({});
@@ -336,15 +336,27 @@ const WebsiteManager = () => {
     }
   };
 
-  const handleDeleteWebsite = async (website) => {
-    if (window.confirm(`Are you sure you want to archive "${website.name}"?`)) {
-      try {
-        await websiteService.deleteWebsite(website._id);
-        showSnackbar('Website archived successfully!');
-        loadWebsites();
-      } catch (error) {
-        showSnackbar('Error archiving website: ' + error.message, 'error');
-      }
+  const handleOpenDeleteDialog = (website) => {
+    setWebsiteToDelete(website);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setWebsiteToDelete(null);
+    setDeleteDialogOpen(false);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!websiteToDelete) return;
+
+    try {
+      await websiteService.deleteWebsite(websiteToDelete._id);
+      showSnackbar('Website archived successfully!');
+      loadWebsites(); // Reload websites from server
+    } catch (error) {
+      showSnackbar('Error archiving website: ' + error.message, 'error');
+    } finally {
+      handleCloseDeleteDialog();
     }
   };
 
@@ -388,10 +400,7 @@ const WebsiteManager = () => {
   };
 
   const getStatusConfig = websiteService.getStatusConfig();
-  const templates = websiteService.getAvailableTemplates();
 
-  // Get unique templates from existing websites for filter
-  const availableTemplates = [...new Set(websites.map(w => w.template))];
   const statusOptions = ['draft', 'preview', 'published', 'archived'];
 
   const WebsiteCard = ({ website }) => {
@@ -508,7 +517,7 @@ const WebsiteManager = () => {
                 <IconButton
                   size="small"
                   color="error"
-                  onClick={() => handleDeleteWebsite(website)}
+                  onClick={() => handleOpenDeleteDialog(website)}
                 >
                   <DeleteIcon />
                 </IconButton>
@@ -640,25 +649,6 @@ const WebsiteManager = () => {
                         }}
                       />
                     </Box>
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-
-          {/* Template Filter */}
-          <Grid item xs={12} sm={6} md={2}>
-            <FormControl fullWidth size="small">
-              <InputLabel>Template</InputLabel>
-              <Select
-                value={templateFilter}
-                onChange={(e) => setTemplateFilter(e.target.value)}
-                label="Template"
-              >
-                <MenuItem value="all">All Templates</MenuItem>
-                {availableTemplates.map(template => (
-                  <MenuItem key={template} value={template}>
-                    {templates.find(t => t.id === template)?.name || template}
                   </MenuItem>
                 ))}
               </Select>
@@ -1009,23 +999,6 @@ const WebsiteManager = () => {
             </Grid>
 
             <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>Template</InputLabel>
-                <Select
-                  value={createForm.template}
-                  label="Template"
-                  onChange={(e) => setCreateForm(prev => ({ ...prev, template: e.target.value }))}
-                >
-                  {templates.map((template) => (
-                    <MenuItem key={template.id} value={template.id}>
-                      {template.name} - {template.description}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12}>
               <TextField
                 fullWidth
                 label="Custom Domain (Optional)"
@@ -1086,6 +1059,26 @@ const WebsiteManager = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setVersionDialogOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleCloseDeleteDialog}
+      >
+        <DialogTitle>Confirm Archive</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to archive the website "<strong>{websiteToDelete?.name}</strong>"?
+            This action can be undone later.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
+          <Button onClick={handleConfirmDelete} color="error" variant="contained">
+            Confirm Archive
+          </Button>
         </DialogActions>
       </Dialog>
 

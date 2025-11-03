@@ -111,18 +111,6 @@ const SimpleDragDropBuilder = () => {
   const [unifiedContentSidebarVisible, setUnifiedContentSidebarVisible] = useState(false);
   const [unifiedContentEnabled, setUnifiedContentEnabled] = useState(actualMode === 'service');
 
-  // Debug logging for mode detection
-  useEffect(() => {
-    console.log('🔍 Mode Detection Debug:');
-    console.log('- Route params:', routeParams);
-    console.log('- Query params - servicePageId:', servicePageId);
-    console.log('- Query params - mode:', queryMode);
-    console.log('- isDisplayMode:', isDisplayMode);
-    console.log('- actualMode:', actualMode);
-    console.log('- websiteId:', websiteId);
-    console.log('- isServicePageMode:', isServicePageMode);
-    console.log('- isWebsiteMode:', isWebsiteMode);
-  }, [servicePageId, queryMode, websiteId, actualMode, isDisplayMode, isServicePageMode, isWebsiteMode, routeParams]);
 
   // Refs to track auto-mapping state and caching
   const autoMappingCompleted = useRef(false);
@@ -176,14 +164,6 @@ const SimpleDragDropBuilder = () => {
   // Service selection state
   const [enhancedServiceSelectorOpen, setEnhancedServiceSelectorOpen] = useState(false);
 
-  // Debug effect to catch rendering errors
-  useEffect(() => {
-    console.log('SimpleDragDropBuilder rendered with states:', {
-      components: components?.length || 0,
-      filteredComponents: filteredComponents?.length || 0,
-      canvasComponents: canvasComponents?.length || 0,
-    });
-  });
 
   // Available categories and tags for dental practice
   const categories = [
@@ -238,19 +218,11 @@ const SimpleDragDropBuilder = () => {
       );
     }
 
-    console.log('Filter applied:', {
-      totalComponents: components.length,
-      searchTerm,
-      selectedCategory,
-      selectedTags,
-      filteredCount: filtered.length
-    });
-    console.log('Filtered components:', filtered.slice(0, 3).map(c => ({ id: c.id, name: c.name, category: c.category })));
 
     setFilteredComponents(filtered);
   }, [components, searchTerm, selectedCategory, selectedTags]);
 
-  // Generate Destack components from service page content - Dynamic Based on Service Data
+  // Generate Destack components from service page content - Enhanced API Content Mapping
   const generateServicePageComponents = (content, serviceData) => {
     if (!content) {
       console.warn('⚠️ No content provided for service page components generation');
@@ -260,13 +232,20 @@ const SimpleDragDropBuilder = () => {
     const components = [];
     let componentId = 1;
 
+
     // Extract dynamic service information
     const serviceName = serviceData?.name || content.hero?.title || 'Dental Service';
     const serviceCategory = serviceData?.category || 'general-dentistry';
     const serviceDescription = serviceData?.shortDescription || content.hero?.subtitle || '';
 
-    // Generate appropriate banner image based on service category
-    const getBannerImage = (serviceName, category) => {
+
+    // Generate appropriate banner image based on service category and existing content
+    const getBannerImage = (serviceName, category, heroContent) => {
+      // First, check if there's an existing image in the content
+      if (heroContent?.imageUrl) {
+        return heroContent.imageUrl;
+      }
+
       const defaultImages = {
         'cosmetic-dentistry': 'https://images.unsplash.com/photo-1606811971618-4486d14f3f99?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=400',
         'general-dentistry': 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=400',
@@ -279,12 +258,14 @@ const SimpleDragDropBuilder = () => {
         return 'https://nahidmahmud.com/test-website/test01/wp-content/uploads/2025/09/Laser-dentistry-banner.png';
       }
 
-      return defaultImages[category] || defaultImages['general-dentistry'];
+      const selectedImage = defaultImages[category] || defaultImages['general-dentistry'];
+      return selectedImage;
     };
 
     // 1. Hero Banner Section - Dynamic based on service data
-    const heroId = `service-hero-${componentId++}`;
-    components.push({
+    if (!content.hero || Object.keys(content.hero).length === 0 || !content.hero.title) {
+      const heroId = `service-hero-${componentId++}`;
+      components.push({
       id: heroId,
       type: 'ServiceHero',
       name: `${serviceName} Hero Banner`,
@@ -295,16 +276,16 @@ const SimpleDragDropBuilder = () => {
       component: `
         <section class="service-hero" style="background: white; padding: 0; margin: 0;">
           <div style="position: relative; width: 100%; height: auto;">
-            <img src="${getBannerImage(serviceName, serviceCategory)}"
+            <img src="${getBannerImage(serviceName, serviceCategory, content.hero)}"
                  alt="${serviceName} Banner"
                  style="width: 100%; height: auto; display: block; max-height: 500px; object-fit: cover;">
             <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: white; z-index: 2;">
               <h1 data-text="true" style="font-size: 48px; font-weight: bold; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
-                ${serviceName}
+                ${content.hero?.title || serviceName}
               </h1>
-              ${serviceDescription ? `
+              ${(content.hero?.subtitle || serviceDescription) ? `
                 <p data-text="true" style="font-size: 20px; margin: 10px 0 0 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
-                  ${serviceDescription}
+                  ${content.hero?.subtitle || serviceDescription}
                 </p>
               ` : ''}
             </div>
@@ -324,56 +305,54 @@ const SimpleDragDropBuilder = () => {
         subtitle: serviceDescription
       }
     });
+    }
 
-    // 2. Introduction Section - Dynamic Service Introduction
-    const introId = `service-intro-${componentId++}`;
+    // 2. Overview/Mission Section - From API content.overview
+    if (content.overview && content.overview.content) {
+      const overviewId = `service-overview-${componentId++}`;
 
-    // Generate dynamic introduction based on service data
-    const getServiceIntro = (serviceName, serviceData) => {
-      if (content.intro) {
-        return content.intro;
-      }
+      // Process markdown-style content
+      const processContent = (rawContent) => {
+        return rawContent
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/## (.*?)\n/g, '<h2 style="font-size: 24px; font-weight: bold; margin: 30px 0 15px 0; color: #1976d2;">$1</h2>')
+          .replace(/\n\n/g, '</p><p style="margin: 15px 0; line-height: 1.6;">')
+          .replace(/\n/g, '<br>');
+      };
 
-      // If no content.intro, generate from service data
-      if (serviceData?.fullDescription) {
-        return serviceData.fullDescription;
-      }
-
-      // Special handling for specific services
-      if (serviceName.toLowerCase().includes('laser')) {
-        return 'LASER stands for Light Amplification by the Stimulated Emission of Radiation. Laser dentistry is a precise and effective way to perform many dental procedures. The potential for it to improve dental procedures rests in the dentist\'s ability to control power output and the duration of exposure on the tissue (whether gum or tooth structure), allowing for treatment of a highly specific area of focus without damaging surrounding tissues.';
-      }
-
-      // Generic template for other services
-      return `${serviceName} is a professional dental treatment designed to improve your oral health and enhance your smile. Our experienced dental team uses state-of-the-art technology and proven techniques to deliver exceptional results with patient comfort as our top priority.`;
-    };
-
-    components.push({
-      id: introId,
-      type: 'ServiceIntro',
-      name: `${serviceName} Introduction`,
-      category: 'content',
-      description: `Introduction explaining ${serviceName} treatment`,
-      tags: ['intro', 'definition'],
-      instanceId: `${introId}-${Date.now()}`,
-      component: `
-        <section class="service-intro" style="background: white; padding: 40px 20px;">
-          <div style="max-width: 800px; margin: 0 auto; text-align: center;">
-            <p data-text="true" style="font-size: 15px; line-height: 1.6; color: #000; margin: 0;">
-              ${getServiceIntro(serviceName, serviceData)}
-            </p>
-          </div>
-        </section>
-      `,
-      props: {
-        intro: getServiceIntro(serviceName, serviceData),
-        serviceName,
-        serviceData
-      },
-      config: {
-        intro: getServiceIntro(serviceName, serviceData)
-      }
-    });
+      components.push({
+        id: overviewId,
+        type: 'ServiceOverview',
+        name: `${serviceName} Overview`,
+        category: 'content',
+        description: `Detailed overview of ${serviceName} service`,
+        tags: ['overview', 'mission', 'content'],
+        instanceId: `${overviewId}-${Date.now()}`,
+        component: `
+          <section class="service-overview" style="background: #f8f9fa; padding: 60px 20px;">
+            <div style="max-width: 1000px; margin: 0 auto;">
+              <h2 data-text="true" style="font-size: 32px; font-weight: bold; text-align: center; margin-bottom: 40px; color: #1976d2;">
+                ${content.overview.title || 'Overview'}
+              </h2>
+              <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <div data-text="true" style="font-size: 16px; line-height: 1.8; color: #333;">
+                  <p style="margin: 15px 0; line-height: 1.6;">${processContent(content.overview.content)}</p>
+                </div>
+              </div>
+            </div>
+          </section>
+        `,
+        props: {
+          title: content.overview.title,
+          content: content.overview.content,
+          highlights: content.overview.highlights || []
+        },
+        config: {
+          title: content.overview.title,
+          content: content.overview.content
+        }
+      });
+    }
 
     // 3. Contact Form Section - From reference site
     const contactId = `service-contact-${componentId++}`;
@@ -413,348 +392,318 @@ const SimpleDragDropBuilder = () => {
       config: {}
     });
 
-    // 4. Service Features/Benefits Section - Dynamic based on service data
-    const uspId = `service-usp-${componentId++}`;
+    // 3. Benefits Section - From API content.benefits
+    if (content.benefits && content.benefits.list && content.benefits.list.length > 0) {
+      const benefitsId = `service-benefits-${componentId++}`;
 
-    // Generate dynamic features based on service data
-    const getServiceFeatures = (serviceName, serviceData) => {
-      // If benefits exist in content, use them
-      if (content.benefits?.list?.length > 0) {
-        return content.benefits.list.slice(0, 4); // Take first 4 benefits
-      }
-
-      // If service data has benefits, convert them
-      if (serviceData?.benefits?.length > 0) {
-        return serviceData.benefits.slice(0, 4).map((benefit, index) => ({
-          title: benefit.split(':')[0] || `Feature ${index + 1}`,
-          description: benefit.split(':')[1] || benefit,
-          icon: getFeatureIcon(benefit, index)
-        }));
-      }
-
-      // Default features for laser dentistry
-      if (serviceName.toLowerCase().includes('laser')) {
-        return [
-          { title: 'Precision', description: 'Laser technology allows for extremely precise treatment, targeting specific areas without damaging surrounding healthy tissue.', icon: '🎯' },
-          { title: 'Comfort', description: 'Many laser procedures can be performed with minimal or no anesthesia, providing a more comfortable experience.', icon: '😌' },
-          { title: 'Faster Healing', description: 'Laser energy promotes faster healing and tissue regeneration, reducing recovery time significantly.', icon: '⚡' },
-          { title: 'Reduced Bleeding', description: 'Laser procedures typically result in less bleeding and swelling compared to traditional methods.', icon: '💧' }
-        ];
-      }
-
-      // Generic features for other services
-      return [
-        { title: 'Expert Care', description: `Professional ${serviceName} treatment performed by experienced dental specialists.`, icon: '👨‍⚕️' },
-        { title: 'Advanced Technology', description: 'State-of-the-art equipment and modern techniques for optimal results.', icon: '🔬' },
-        { title: 'Patient Comfort', description: 'Comfortable procedures designed to minimize discomfort and anxiety.', icon: '😌' },
-        { title: 'Lasting Results', description: 'Long-term solutions that improve your oral health and confidence.', icon: '✨' }
-      ];
-    };
-
-    const getFeatureIcon = (benefit, index) => {
-      const icons = ['🎯', '😌', '⚡', '💧', '🦷', '✨', '🔬', '👨‍⚕️'];
-      if (benefit.toLowerCase().includes('precision') || benefit.toLowerCase().includes('accurate')) return '🎯';
-      if (benefit.toLowerCase().includes('comfort') || benefit.toLowerCase().includes('pain')) return '😌';
-      if (benefit.toLowerCase().includes('healing') || benefit.toLowerCase().includes('fast') || benefit.toLowerCase().includes('quick')) return '⚡';
-      if (benefit.toLowerCase().includes('bleeding') || benefit.toLowerCase().includes('blood')) return '💧';
-      if (benefit.toLowerCase().includes('dental') || benefit.toLowerCase().includes('tooth')) return '🦷';
-      return icons[index % icons.length];
-    };
-
-    const features = getServiceFeatures(serviceName, serviceData);
-    const sectionTitle = `Why Choose ${serviceName}?`;
-
-    components.push({
-      id: uspId,
-      type: 'ServiceUSP',
-      name: `${serviceName} Features`,
-      category: 'features',
-      description: `Key features and benefits of ${serviceName}`,
-      tags: ['usp', 'features', 'benefits'],
-      instanceId: `${uspId}-${Date.now()}`,
-      component: `
-        <section class="service-usp" style="background: white; padding: 60px 20px;">
-          <div style="max-width: 1200px; margin: 0 auto;">
-            <h2 data-text="true" style="font-size: 32px; font-weight: bold; text-align: center; margin-bottom: 40px; color: #000;">
-              ${sectionTitle}
-            </h2>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px;">
-              ${features.map(feature => `
-                <div style="text-align: center; padding: 20px;">
-                  <div style="font-size: 48px; margin-bottom: 15px;">${feature.icon}</div>
-                  <h3 data-text="true" style="font-size: 20px; font-weight: bold; margin-bottom: 10px; color: #000;">
-                    ${feature.title}
-                  </h3>
-                  <p data-text="true" style="font-size: 15px; line-height: 1.5; color: #000; margin: 0;">
-                    ${feature.description}
-                  </p>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-        </section>
-      `,
-      props: {
-        features,
-        serviceName,
-        sectionTitle
-      },
-      config: {
-        features,
-        sectionTitle
-      }
-    });
-
-    // 5. Benefits Section - Dynamic bullet points based on service data
-    const benefitsId = `service-benefits-${componentId++}`;
-
-    // Generate dynamic benefits based on service data
-    const getServiceBenefits = (serviceName, serviceData) => {
-      // If content has detailed benefits list, use them
-      if (content.benefits?.list?.length > 0) {
-        return content.benefits.list.map(benefit =>
-          typeof benefit === 'string' ? benefit : benefit.description || benefit.title
-        );
-      }
-
-      // If service data has benefits, use them
-      if (serviceData?.benefits?.length > 0) {
-        return serviceData.benefits;
-      }
-
-      // Default benefits for laser dentistry (keeping original for compatibility)
-      if (serviceName.toLowerCase().includes('laser')) {
-        return [
-          'Procedures performed using soft tissue dental lasers may not require sutures (stitches)',
-          'Certain laser dentistry procedures do not require anesthesia',
-          'Laser dentistry minimizes bleeding because the high-energy light beam aids in the clotting (coagulation) of exposed blood vessels, thus inhibiting blood loss',
-          'Bacterial infections are minimized because the high-energy beam sterilizes the area being worked on',
-          'Damage to surrounding tissue is minimized',
-          'Wounds heal faster and tissues can be regenerated'
-        ];
-      }
-
-      // Generic benefits for other services
-      return [
-        `Improved oral health and function with ${serviceName} treatment`,
-        'Professional care using state-of-the-art dental technology',
-        'Minimally invasive techniques for maximum patient comfort',
-        'Long-lasting results with proper care and maintenance',
-        'Experienced dental team with specialized training',
-        'Comprehensive treatment planning for optimal outcomes'
-      ];
-    };
-
-    const benefits = getServiceBenefits(serviceName, serviceData);
-    const benefitsTitle = content.benefits?.title || `Benefits of ${serviceName}`;
-
-    components.push({
-      id: benefitsId,
-      type: 'ServiceBenefits',
-      name: `${serviceName} Benefits`,
-      category: 'benefits',
-      description: `Key benefits of ${serviceName} treatment`,
-      tags: ['benefits', 'advantages'],
-      instanceId: `${benefitsId}-${Date.now()}`,
-      component: `
-        <section class="service-benefits" style="background: white; padding: 50px 20px;">
-          <div style="max-width: 800px; margin: 0 auto;">
-            <h2 data-text="true" style="font-size: 28px; font-weight: bold; text-align: center; margin-bottom: 30px; color: #000;">
-              ${benefitsTitle}
-            </h2>
-            <ul style="list-style: disc; padding-left: 20px; line-height: 2; font-size: 15px; color: #000;">
-              ${benefits.map(benefit => `
-                <li data-text="true">${benefit}</li>
-              `).join('')}
-            </ul>
-          </div>
-        </section>
-      `,
-      props: {
-        benefits,
-        benefitsTitle,
-        serviceName
-      },
-      config: {
-        benefits,
-        benefitsTitle
-      }
-    });
-
-    // 6. Procedures Section - Dynamic based on service data
-    const proceduresId = `service-procedures-${componentId++}`;
-
-    // Generate dynamic procedures based on service data
-    const getServiceProcedures = (serviceName, serviceData) => {
-      // If content has procedure steps, use them
-      if (content.procedure?.steps?.length > 0) {
-        return content.procedure.steps.slice(0, 3).map(step => ({
-          title: step.title,
-          description: step.description,
-          image: getDefaultProcedureImage(step.title, serviceName)
-        }));
-      }
-
-      // Default procedures for laser dentistry
-      if (serviceName.toLowerCase().includes('laser')) {
-        return [
-          {
-            title: 'Crown Lengthening',
-            description: 'Laser dentistry can reshape gum tissue to expose a healthy tooth structure and improve the appearance of a gummy smile.',
-            image: 'https://nahidmahmud.com/test-website/test01/wp-content/uploads/2025/09/Crown-Lengthening.png'
-          },
-          {
-            title: 'Treating Tongue Conditions',
-            description: 'Lasers can treat tongue-tie conditions and other tongue-related issues with minimal discomfort and faster healing.',
-            image: 'https://nahidmahmud.com/test-website/test01/wp-content/uploads/2025/09/Treating-tongue.png'
-          },
-          {
-            title: 'Removing Soft Tissue',
-            description: 'Precise removal of soft tissue folds from ill-fitting dentures without pain and minimal bleeding.',
-            image: 'https://nahidmahmud.com/test-website/test01/wp-content/uploads/2025/09/Removing-soft-tissue.png'
-          }
-        ];
-      }
-
-      // Generic procedures for other services
-      return [
-        {
-          title: `Initial ${serviceName} Consultation`,
-          description: `Comprehensive examination and assessment to determine the best ${serviceName} treatment plan for your needs.`,
-          image: getDefaultProcedureImage('consultation', serviceName)
-        },
-        {
-          title: `${serviceName} Treatment`,
-          description: `Professional ${serviceName} procedure performed using advanced dental technology and techniques.`,
-          image: getDefaultProcedureImage('treatment', serviceName)
-        },
-        {
-          title: 'Follow-up Care',
-          description: `Post-treatment monitoring and care instructions to ensure optimal healing and long-lasting results.`,
-          image: getDefaultProcedureImage('followup', serviceName)
-        }
-      ];
-    };
-
-    const getDefaultProcedureImage = (procedureType, serviceName) => {
-      const defaultImages = {
-        consultation: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=200',
-        treatment: 'https://images.unsplash.com/photo-1606811971618-4486d14f3f99?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=200',
-        followup: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=200'
+      const getIconForBenefit = (title) => {
+        const titleLower = title.toLowerCase();
+        if (titleLower.includes('smile') || titleLower.includes('confidence')) return '😊';
+        if (titleLower.includes('breath') || titleLower.includes('fresh')) return '🌬️';
+        if (titleLower.includes('health') || titleLower.includes('protect')) return '🛡️';
+        if (titleLower.includes('prevent') || titleLower.includes('pain')) return '⚠️';
+        if (titleLower.includes('comfort') || titleLower.includes('gentle')) return '🤗';
+        if (titleLower.includes('money') || titleLower.includes('save')) return '💰';
+        if (titleLower.includes('personal') || titleLower.includes('care')) return '📋';
+        return '✨';
       };
 
-      return defaultImages[procedureType] || defaultImages.treatment;
-    };
-
-    const procedures = getServiceProcedures(serviceName, serviceData);
-    const proceduresTitle = content.procedure?.title || `Common ${serviceName} Procedures`;
-
-    components.push({
-      id: proceduresId,
-      type: 'ServiceProcedures',
-      name: `${serviceName} Procedures`,
-      category: 'procedures',
-      description: `Common ${serviceName} procedures and treatments`,
-      tags: ['procedures', 'treatments'],
-      instanceId: `${proceduresId}-${Date.now()}`,
-      component: `
-        <section class="service-procedures" style="background: white; padding: 60px 20px;">
-          <div style="max-width: 1200px; margin: 0 auto;">
-            <h2 data-text="true" style="font-size: 28px; font-weight: bold; text-align: center; margin-bottom: 40px; color: #000;">
-              ${proceduresTitle}
-            </h2>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px;">
-              ${procedures.map(procedure => `
-                <div style="text-align: center;">
-                  <img src="${procedure.image}"
-                       alt="${procedure.title}" style="width: 200px; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 20px;">
-                  <h3 data-text="true" style="font-size: 20px; font-weight: bold; margin-bottom: 15px; color: #000;">
-                    ${procedure.title}
-                  </h3>
-                  <p data-text="true" style="font-size: 15px; line-height: 1.6; color: #000; margin: 0;">
-                    ${procedure.description}
-                  </p>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-        </section>
-      `,
-      props: {
-        procedures,
-        proceduresTitle,
-        serviceName
-      },
-      config: {
-        procedures,
-        proceduresTitle
-      }
-    });
-
-    // 7. FAQ Section - Expanded questions as in reference
-    const faqId = `service-faq-${componentId++}`;
-    components.push({
-      id: faqId,
-      type: 'ServiceFAQ',
-      name: 'Frequently Asked Questions',
-      category: 'faq',
-      description: 'Comprehensive FAQ section with 15 questions',
-      tags: ['faq', 'questions'],
-      instanceId: `${faqId}-${Date.now()}`,
-      component: `
-        <section class="service-faq" style="background: white; padding: 60px 20px;">
-          <div style="max-width: 1000px; margin: 0 auto;">
-            <h2 data-text="true" style="font-size: 28px; font-weight: bold; text-align: center; margin-bottom: 40px; color: #000;">
-              Frequently Asked Questions
-            </h2>
-            <div style="space-y: 1rem;">
-              <div class="faq-item" style="background: #f8f9fa; border-radius: 8px; overflow: hidden; margin-bottom: 10px;">
-                <button class="faq-question" onclick="toggleFAQ(0)" style="width: 100%; text-align: left; padding: 15px; font-weight: 600; background: none; border: none; cursor: pointer; font-size: 15px; color: #000; display: flex; justify-content: space-between; align-items: center;">
-                  <span data-text="true">What is laser dentistry?</span>
-                  <span style="font-size: 18px; transition: transform 0.3s;">+</span>
-                </button>
-                <div class="faq-answer" id="faq-0" style="display: none; padding: 0 15px 15px; color: #000; line-height: 1.6; font-size: 15px;">
-                  <span data-text="true">Laser dentistry is the use of lasers to treat a number of different dental conditions. It became commercially used in clinical dental practice for procedures involving tooth tissue in 1989.</span>
-                </div>
-              </div>
-              <div class="faq-item" style="background: #f8f9fa; border-radius: 8px; overflow: hidden; margin-bottom: 10px;">
-                <button class="faq-question" onclick="toggleFAQ(1)" style="width: 100%; text-align: left; padding: 15px; font-weight: 600; background: none; border: none; cursor: pointer; font-size: 15px; color: #000; display: flex; justify-content: space-between; align-items: center;">
-                  <span data-text="true">Is laser dentistry safe?</span>
-                  <span style="font-size: 18px; transition: transform 0.3s;">+</span>
-                </button>
-                <div class="faq-answer" id="faq-1" style="display: none; padding: 0 15px 15px; color: #000; line-height: 1.6; font-size: 15px;">
-                  <span data-text="true">Yes, laser dentistry is considered safe when performed by a trained dental professional. The FDA has approved laser use for various dental procedures.</span>
-                </div>
-              </div>
-              <div class="faq-item" style="background: #f8f9fa; border-radius: 8px; overflow: hidden; margin-bottom: 10px;">
-                <button class="faq-question" onclick="toggleFAQ(2)" style="width: 100%; text-align: left; padding: 15px; font-weight: 600; background: none; border: none; cursor: pointer; font-size: 15px; color: #000; display: flex; justify-content: space-between; align-items: center;">
-                  <span data-text="true">Does laser dentistry hurt?</span>
-                  <span style="font-size: 18px; transition: transform 0.3s;">+</span>
-                </button>
-                <div class="faq-answer" id="faq-2" style="display: none; padding: 0 15px 15px; color: #000; line-height: 1.6; font-size: 15px;">
-                  <span data-text="true">Most laser dentistry procedures cause little to no pain and may require minimal or no anesthesia.</span>
-                </div>
+      components.push({
+        id: benefitsId,
+        type: 'ServiceBenefits',
+        name: `${serviceName} Benefits`,
+        category: 'benefits',
+        description: `Benefits of ${serviceName} service`,
+        tags: ['benefits', 'features', 'advantages'],
+        instanceId: `${benefitsId}-${Date.now()}`,
+        component: `
+          <section class="service-benefits" style="background: white; padding: 80px 20px;">
+            <div style="max-width: 1200px; margin: 0 auto;">
+              <h2 data-text="true" style="font-size: 36px; font-weight: bold; text-align: center; margin-bottom: 20px; color: #1976d2;">
+                ${content.benefits.title || 'Benefits'}
+              </h2>
+              ${content.benefits.introduction ? `
+                <p data-text="true" style="font-size: 18px; text-align: center; margin-bottom: 60px; color: #666; max-width: 800px; margin-left: auto; margin-right: auto;">
+                  ${content.benefits.introduction}
+                </p>
+              ` : ''}
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px;">
+                ${content.benefits.list.map((benefit, index) => `
+                  <div style="background: #f8f9fa; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transition: transform 0.3s ease;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <div style="display: flex; align-items: flex-start; gap: 20px;">
+                      <div style="font-size: 32px; line-height: 1; margin-top: 5px;">
+                        ${getIconForBenefit(benefit.title)}
+                      </div>
+                      <div style="flex: 1;">
+                        <h3 data-text="true" style="font-size: 20px; font-weight: bold; margin: 0 0 15px 0; color: #1976d2;">
+                          ${benefit.title}
+                        </h3>
+                        <p data-text="true" style="font-size: 15px; line-height: 1.6; color: #333; margin: 0;">
+                          ${benefit.description.replace(/\*\*/g, '')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                `).join('')}
               </div>
             </div>
-            <script>
-              function toggleFAQ(index) {
-                const answer = document.getElementById('faq-' + index);
-                const button = answer.previousElementSibling.querySelector('span:last-child');
-                if (answer.style.display === 'none' || answer.style.display === '') {
-                  answer.style.display = 'block';
-                  button.textContent = '-';
-                } else {
-                  answer.style.display = 'none';
-                  button.textContent = '+';
-                }
-              }
-            </script>
-          </div>
-        </section>
-      `,
-      props: {},
-      config: {}
-    });
+          </section>
+        `,
+        props: {
+          title: content.benefits.title,
+          introduction: content.benefits.introduction,
+          benefits: content.benefits.list
+        },
+        config: {
+          title: content.benefits.title,
+          benefits: content.benefits.list
+        }
+      });
+    }
+
+    // 4. Procedure Steps Section - From API content.procedure
+    if (content.procedure && content.procedure.steps && content.procedure.steps.length > 0) {
+      const procedureId = `service-procedure-${componentId++}`;
+
+      components.push({
+        id: procedureId,
+        type: 'ServiceProcedure',
+        name: `${serviceName} Procedure`,
+        category: 'procedure',
+        description: `Step-by-step procedure for ${serviceName}`,
+        tags: ['procedure', 'steps', 'process'],
+        instanceId: `${procedureId}-${Date.now()}`,
+        component: `
+          <section class="service-procedure" style="background: #f8f9fa; padding: 80px 20px;">
+            <div style="max-width: 1000px; margin: 0 auto;">
+              <h2 data-text="true" style="font-size: 36px; font-weight: bold; text-align: center; margin-bottom: 20px; color: #1976d2;">
+                ${content.procedure.title || 'The Procedure'}
+              </h2>
+              ${content.procedure.introduction ? `
+                <p data-text="true" style="font-size: 18px; text-align: center; margin-bottom: 60px; color: #666; max-width: 700px; margin-left: auto; margin-right: auto;">
+                  ${content.procedure.introduction}
+                </p>
+              ` : ''}
+              <div style="position: relative;">
+                ${content.procedure.steps.map((step, index) => `
+                  <div style="display: flex; align-items: flex-start; margin-bottom: 40px; position: relative;">
+                    <div style="flex-shrink: 0; width: 60px; height: 60px; background: #1976d2; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; margin-right: 30px; z-index: 2;">
+                      ${step.stepNumber || index + 1}
+                    </div>
+                    ${index < content.procedure.steps.length - 1 ? `
+                      <div style="position: absolute; left: 29px; top: 60px; width: 2px; height: 40px; background: #e0e0e0; z-index: 1;"></div>
+                    ` : ''}
+                    <div style="flex: 1; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                      <h3 data-text="true" style="font-size: 22px; font-weight: bold; margin: 0 0 15px 0; color: #1976d2;">
+                        ${step.title}
+                      </h3>
+                      <p data-text="true" style="font-size: 16px; line-height: 1.6; color: #333; margin: 0;">
+                        ${step.description.replace(/\*\*/g, '')}
+                      </p>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </section>
+        `,
+        props: {
+          title: content.procedure.title,
+          introduction: content.procedure.introduction,
+          steps: content.procedure.steps
+        },
+        config: {
+          title: content.procedure.title,
+          steps: content.procedure.steps
+        }
+      });
+    }
+
+    // 5. FAQ Section - From API content.faq
+    if (content.faq && content.faq.questions && content.faq.questions.length > 0) {
+      const faqId = `service-faq-${componentId++}`;
+
+    // Enhanced FAQ Section from API content
+    if (content.faq && content.faq.questions && content.faq.questions.length > 0) {
+      const enhancedFaqId = `service-faq-enhanced-${componentId++}`;
+
+      components.push({
+        id: enhancedFaqId,
+        type: 'ServiceFAQEnhanced',
+        name: `${serviceName} FAQ Enhanced`,
+        category: 'faq',
+        description: `Enhanced FAQ section for ${serviceName}`,
+        tags: ['faq', 'questions', 'answers'],
+        instanceId: `${enhancedFaqId}-${Date.now()}`,
+        component: `
+          <section class="service-faq-enhanced" style="background: white; padding: 80px 20px;">
+            <div style="max-width: 900px; margin: 0 auto;">
+              <h2 data-text="true" style="font-size: 36px; font-weight: bold; text-align: center; margin-bottom: 20px; color: #1976d2;">
+                ${content.faq.title || 'Frequently Asked Questions'}
+              </h2>
+              ${content.faq.introduction ? `
+                <p data-text="true" style="font-size: 18px; text-align: center; margin-bottom: 60px; color: #666; max-width: 700px; margin-left: auto; margin-right: auto;">
+                  ${content.faq.introduction}
+                </p>
+              ` : ''}
+              <div>
+                ${content.faq.questions.map((faq, index) => `
+                  <div style="border: 1px solid #e0e0e0; border-radius: 12px; margin-bottom: 15px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <button
+                      onclick="
+                        const content = this.nextElementSibling;
+                        const icon = this.querySelector('.faq-icon');
+                        const isVisible = content.style.display === 'block';
+                        content.style.display = isVisible ? 'none' : 'block';
+                        icon.textContent = isVisible ? '+' : '−';
+                        this.style.background = isVisible ? '#f8f9fa' : '#1976d2';
+                        this.style.color = isVisible ? '#333' : 'white';
+                      "
+                      style="width: 100%; padding: 25px; background: #f8f9fa; border: none; text-align: left; cursor: pointer; font-size: 18px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; transition: all 0.3s ease; color: #333;">
+                      <span data-text="true" style="flex: 1; margin-right: 15px;">
+                        ${faq.question.replace(/\*\*/g, '')}
+                      </span>
+                      <span class="faq-icon" style="font-size: 24px; font-weight: bold; line-height: 1;">+</span>
+                    </button>
+                    <div style="padding: 0; display: none; background: white;">
+                      <div style="padding: 30px; border-top: 1px solid #e0e0e0;">
+                        <div data-text="true" style="font-size: 16px; line-height: 1.8; color: #333;">
+                          ${faq.answer.replace(/\*\*/g, '').replace(/\n/g, '<br>')}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </section>
+        `,
+        props: {
+          title: content.faq.title,
+          introduction: content.faq.introduction,
+          questions: content.faq.questions
+        },
+        config: {
+          title: content.faq.title,
+          questions: content.faq.questions
+        }
+      });
+    }    }
+
+    // Enhanced Aftercare Section from API content
+    if (content.aftercare && content.aftercare.showSection && content.aftercare.instructions && content.aftercare.instructions.length > 0) {
+      const enhancedAftercareId = `service-aftercare-enhanced-${componentId++}`;
+
+      components.push({
+        id: enhancedAftercareId,
+        type: 'ServiceAftercareEnhanced',
+        name: `${serviceName} Aftercare Enhanced`,
+        category: 'aftercare',
+        description: `Enhanced aftercare instructions for ${serviceName}`,
+        tags: ['aftercare', 'recovery', 'instructions'],
+        instanceId: `${enhancedAftercareId}-${Date.now()}`,
+        component: `
+          <section class="service-aftercare-enhanced" style="background: #f8f9fa; padding: 80px 20px;">
+            <div style="max-width: 1000px; margin: 0 auto;">
+              <h2 data-text="true" style="font-size: 36px; font-weight: bold; text-align: center; margin-bottom: 20px; color: #1976d2;">
+                ${content.aftercare.title || 'Recovery & Aftercare'}
+              </h2>
+              ${content.aftercare.introduction ? `
+                <p data-text="true" style="font-size: 18px; text-align: center; margin-bottom: 60px; color: #666; max-width: 800px; margin-left: auto; margin-right: auto;">
+                  ${content.aftercare.introduction}
+                </p>
+              ` : ''}
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px;">
+                ${content.aftercare.instructions.map((instruction, index) => `
+                  <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                    <div style="display: flex; align-items: flex-start; gap: 15px;">
+                      <div style="flex-shrink: 0; width: 40px; height: 40px; background: #1976d2; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold;">
+                        ${index + 1}
+                      </div>
+                      <div style="flex: 1;">
+                        <h3 data-text="true" style="font-size: 18px; font-weight: bold; margin: 0 0 10px 0; color: #1976d2;">
+                          ${instruction.title}
+                        </h3>
+                        <p data-text="true" style="font-size: 15px; line-height: 1.6; color: #333; margin: 0;">
+                          ${instruction.description.replace(/\*\*/g, '')}
+                        </p>
+                        ${instruction.timeframe ? `
+                          <div style="margin-top: 10px; padding: 8px 12px; background: #e3f2fd; border-radius: 6px; display: inline-block;">
+                            <span style="font-size: 13px; color: #1976d2; font-weight: 600;">
+                              ${instruction.timeframe}
+                            </span>
+                          </div>
+                        ` : ''}
+                      </div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </section>
+        `,
+        props: {
+          title: content.aftercare.title,
+          introduction: content.aftercare.introduction,
+          instructions: content.aftercare.instructions
+        },
+        config: {
+          title: content.aftercare.title,
+          instructions: content.aftercare.instructions
+        }
+      });
+    }
+
+    // Enhanced CTA Section from API content
+    if (content.cta) {
+      const enhancedCtaId = `service-cta-enhanced-${componentId++}`;
+
+      components.push({
+        id: enhancedCtaId,
+        type: 'ServiceCTAEnhanced',
+        name: `${serviceName} CTA Enhanced`,
+        category: 'cta',
+        description: `Enhanced call to action for ${serviceName}`,
+        tags: ['cta', 'booking', 'consultation'],
+        instanceId: `${enhancedCtaId}-${Date.now()}`,
+        component: `
+          <section class="service-cta-enhanced" style="background: ${content.cta.backgroundColor || '#1976d2'}; padding: 80px 20px; text-align: center;">
+            <div style="max-width: 800px; margin: 0 auto;">
+              <h2 data-text="true" style="font-size: 36px; font-weight: bold; margin-bottom: 15px; color: white;">
+                ${content.cta.title || `Ready for ${serviceName}?`}
+              </h2>
+              <p data-text="true" style="font-size: 20px; margin-bottom: 40px; color: rgba(255,255,255,0.9);">
+                ${content.cta.subtitle || `Schedule your ${serviceName} consultation today.`}
+              </p>
+              <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; align-items: center;">
+                <button data-text="true" style="background: white; color: ${content.cta.backgroundColor || '#1976d2'}; padding: 18px 40px; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; transition: transform 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                  ${content.cta.buttonText || 'Book Consultation'}
+                </button>
+                ${content.cta.phoneNumber ? `
+                  <div style="display: flex; align-items: center; gap: 10px; color: white;">
+                    <span style="font-size: 20px;">📞</span>
+                    <span data-text="true" style="font-size: 18px; font-weight: 600;">
+                      ${content.cta.phoneNumber}
+                    </span>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          </section>
+        `,
+        props: {
+          title: content.cta.title,
+          subtitle: content.cta.subtitle,
+          buttonText: content.cta.buttonText,
+          phoneNumber: content.cta.phoneNumber,
+          backgroundColor: content.cta.backgroundColor
+        },
+        config: {
+          title: content.cta.title,
+          backgroundColor: content.cta.backgroundColor
+        }
+      });
+    }
 
     return components;
   };
@@ -954,16 +903,39 @@ const SimpleDragDropBuilder = () => {
           return;
         }
         if (servicePageResponse.success && servicePageResponse.data && servicePageResponse.data.servicePage) {
+          console.log('🔧 Full API Response Analysis:');
+          console.log('   - servicePage:', servicePageResponse.data.servicePage);
+          console.log('   - serviceInfo:', servicePageResponse.data.serviceInfo);
+          console.log('   - currentVersionData:', servicePageResponse.data.currentVersionData);
+          console.log('   - websiteSettings:', servicePageResponse.data.websiteSettings);
+
           setServicePage(servicePageResponse.data.servicePage);
           setServiceInfo(servicePageResponse.data.serviceInfo);
           setWebsite(servicePageResponse.data.servicePage.websiteId);
 
           // Load service page components
           const currentVersionData = servicePageResponse.data.currentVersionData;
-          if (currentVersionData && currentVersionData.components) {
+          console.log('🔍 Component Loading Analysis:');
+          console.log('   - currentVersionData exists:', !!currentVersionData);
+          console.log('   - currentVersionData.components exists:', !!(currentVersionData?.components));
+          console.log('   - currentVersionData.components length:', currentVersionData?.components?.length || 0);
+
+          if (currentVersionData?.components) {
+            console.log('   - Components preview:', currentVersionData.components.map(c => ({
+              id: c.id,
+              name: c.name,
+              type: c.type,
+              hasComponent: !!c.component
+            })));
+          }
+
+          if (currentVersionData && currentVersionData.components && currentVersionData.components.length > 0) {
+            console.log('✅ Loading SAVED components from version data');
             setCanvasComponents(currentVersionData.components);
+            setNextId(prev => Math.max(prev, currentVersionData.components.length + 1));
+            showSnackbar(`Loaded ${currentVersionData.components.length} saved components`, 'success');
           } else {
-            // Generate components from service page content with service data
+            console.log('🔧 No saved components found - generating from content');
             console.log('🔧 Generating service page components from content:', servicePageResponse.data.servicePage.content);
             console.log('🔧 Service data:', servicePageResponse.data.serviceInfo);
             const serviceComponents = generateServicePageComponents(
@@ -978,7 +950,7 @@ const SimpleDragDropBuilder = () => {
 
             if (serviceComponents.length > 0) {
               console.log('🎨 First component preview:', serviceComponents[0]);
-              showSnackbar(`Loaded ${serviceComponents.length} service page sections`, 'success');
+              showSnackbar(`Generated ${serviceComponents.length} service page sections`, 'success');
             } else {
               console.warn('⚠️ No service page components generated');
               showSnackbar('No service page content found', 'warning');
@@ -1719,25 +1691,46 @@ const SimpleDragDropBuilder = () => {
         // Transform canvas components to structured content format
         const transformedContent = transformCanvasToContent(canvasComponents, serviceInfo || {});
 
-        console.log('Transformed content for sync:', transformedContent);
+        console.log('🔧 Save Operation Analysis:');
+        console.log('   - servicePageId:', servicePageId);
+        console.log('   - canvasComponents count:', canvasComponents.length);
+        console.log('   - canvasComponents preview:', canvasComponents.map(c => ({
+          id: c.id,
+          name: c.name,
+          type: c.type,
+          hasComponent: !!c.component
+        })));
+        console.log('   - transformedContent:', transformedContent);
 
         // Save both components AND transformed content structure
-        await servicePageService.updateServicePageContent(servicePageId, {
+        const saveData = {
           content: transformedContent,
           components: canvasComponents,
           globalSettings,
           changeLog: 'Manual save from drag-drop editor - content synchronized'
-        });
+        };
+        console.log('   - saveData being sent:', saveData);
 
-        // Also save components separately for backward compatibility
+        const saveResponse = await servicePageService.updateServicePageContent(servicePageId, saveData);
+        console.log('   - Save response:', saveResponse);
+
+        // Verify save by reloading the data
         try {
-          await servicePageService.updateServicePageComponents(servicePageId, {
-            components: canvasComponents,
-            globalSettings,
-            changeLog: 'Component save from drag-drop editor'
-          });
-        } catch (error) {
-          console.warn('Component-only save failed (non-critical):', error);
+          console.log('🔄 Verifying save by reloading data...');
+          const verificationResponse = await servicePageService.getServicePageForEditing(servicePageId);
+          if (verificationResponse.success && verificationResponse.data) {
+            const verifyVersionData = verificationResponse.data.currentVersionData;
+            console.log('   - Verification currentVersionData:', verifyVersionData);
+            console.log('   - Verification components count:', verifyVersionData?.components?.length || 0);
+
+            if (verifyVersionData?.components?.length > 0) {
+              console.log('✅ Components successfully saved and verified');
+            } else {
+              console.warn('⚠️ Components not found in verification - may be an issue with save/load');
+            }
+          }
+        } catch (verifyError) {
+          console.warn('Verification failed:', verifyError);
         }
 
         // Sync with unified content system if enabled
