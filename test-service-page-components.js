@@ -3,13 +3,13 @@
 
 const testServicePageContent = {
   hero: {
-    title: "Laser Dentistry - Advanced Treatment",
+    title: "General Dental Treatment - Advanced Treatment",
     subtitle: "Pain-free procedures with cutting-edge technology",
     description: "Experience the future of dental care with our state-of-the-art laser treatments.",
     ctaText: "Book Consultation"
   },
   overview: {
-    title: "What is Laser Dentistry?",
+    title: "What is General Dental Treatment?",
     content: "Laser dentistry represents the latest advancement in dental care technology.",
     highlights: [
       "Minimally invasive procedures",
@@ -18,7 +18,7 @@ const testServicePageContent = {
     ]
   },
   benefits: {
-    title: "Why Choose Laser Dentistry?",
+    title: "Why Choose General Dental Treatment?",
     introduction: "Discover the advantages of modern laser dental treatments.",
     list: [
       {
@@ -34,7 +34,7 @@ const testServicePageContent = {
     ]
   },
   procedure: {
-    title: "The Laser Dentistry Process",
+    title: "The General Dental Treatment Process",
     introduction: "Our step-by-step approach ensures optimal results.",
     steps: [
       {
@@ -66,7 +66,7 @@ const testServicePageContent = {
     ]
   },
   cta: {
-    title: "Ready to Experience Laser Dentistry?",
+    title: "Ready to Experience General Dental Treatment?",
     subtitle: "Schedule your consultation today",
     buttonText: "Book Now",
     phoneNumber: "(555) 123-4567",

@@ -46,7 +46,7 @@ import {
   Typography
 } from '@mui/material';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import dentalWebsiteSections from '../../data/DENTAL_WEBSITE_SECTIONS';
 // Removed enhancedDentalNavigation - using only clean dynamic headers
 import serviceService from '../../services/serviceService';
@@ -69,34 +69,60 @@ import DestackUnifiedContentSidebar from './DestackUnifiedContentSidebar';
  */
 const SimpleDragDropBuilder = () => {
   const [searchParams] = useSearchParams();
+  const routeParams = useParams();
   const navigate = useNavigate();
-  const websiteId = searchParams.get('websiteId');
-  const servicePageId = searchParams.get('servicePageId');
-  const mode = searchParams.get('mode'); // 'service' for service page editing
+
+  // Detect if we're in display mode (URL: /website/:websiteId/services/:serviceSlug)
+  const isDisplayMode = routeParams.websiteId && routeParams.serviceSlug;
+  const displayWebsiteId = routeParams.websiteId;
+  const displayServiceSlug = routeParams.serviceSlug;
+
+  // Get parameters from query string (edit mode) or route params (display mode)
+  const websiteId = isDisplayMode ? displayWebsiteId : searchParams.get('websiteId');
+  const servicePageId = searchParams.get('servicePageId'); // Only available in service page edit mode
+  const queryMode = searchParams.get('mode'); // 'service' for service page editing
+
+  // Determine the actual mode
+  let actualMode;
+  if (isDisplayMode) {
+    actualMode = 'display'; // Service page display mode
+  } else if (servicePageId && queryMode === 'service') {
+    actualMode = 'service'; // Service page edit mode
+  } else {
+    actualMode = 'website'; // Website edit mode (original functionality)
+  }
 
   // Website state
   const [website, setWebsite] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Service page state (when mode === 'service')
+  // Mode state variables
+  const [isServicePageMode, setIsServicePageMode] = useState(actualMode === 'service' || actualMode === 'display');
+  const [isWebsiteMode, setIsWebsiteMode] = useState(actualMode === 'website');
+  const [isEditMode, setIsEditMode] = useState(actualMode === 'service');
+  const [isViewMode, setIsViewMode] = useState(actualMode === 'display');
+
+  // Service page state (when in service page mode)
   const [servicePage, setServicePage] = useState(null);
-  const [isServicePageMode, setIsServicePageMode] = useState(mode === 'service');
+  const [serviceInfo, setServiceInfo] = useState(null);
 
   // Unified content state (for service page mode)
   const [unifiedContentSidebarVisible, setUnifiedContentSidebarVisible] = useState(false);
-  const [unifiedContentEnabled, setUnifiedContentEnabled] = useState(mode === 'service');
+  const [unifiedContentEnabled, setUnifiedContentEnabled] = useState(actualMode === 'service');
 
-  // Debug logging for service page mode
+  // Debug logging for mode detection
   useEffect(() => {
-    if (servicePageId || mode) {
-      console.log('🔍 Service Page Mode Detection:');
-      console.log('- servicePageId:', servicePageId);
-      console.log('- mode:', mode);
-      console.log('- isServicePageMode:', mode === 'service');
-      console.log('- websiteId:', websiteId);
-    }
-  }, [servicePageId, mode, websiteId]);
+    console.log('🔍 Mode Detection Debug:');
+    console.log('- Route params:', routeParams);
+    console.log('- Query params - servicePageId:', servicePageId);
+    console.log('- Query params - mode:', queryMode);
+    console.log('- isDisplayMode:', isDisplayMode);
+    console.log('- actualMode:', actualMode);
+    console.log('- websiteId:', websiteId);
+    console.log('- isServicePageMode:', isServicePageMode);
+    console.log('- isWebsiteMode:', isWebsiteMode);
+  }, [servicePageId, queryMode, websiteId, actualMode, isDisplayMode, isServicePageMode, isWebsiteMode, routeParams]);
 
   // Refs to track auto-mapping state and caching
   const autoMappingCompleted = useRef(false);
@@ -436,9 +462,7 @@ const SimpleDragDropBuilder = () => {
     };
 
     const features = getServiceFeatures(serviceName, serviceData);
-    const sectionTitle = serviceName.toLowerCase().includes('laser')
-      ? 'Next-Generation Laser Dentistry'
-      : `Why Choose ${serviceName}?`;
+    const sectionTitle = `Why Choose ${serviceName}?`;
 
     components.push({
       id: uspId,
@@ -735,15 +759,203 @@ const SimpleDragDropBuilder = () => {
     return components;
   };
 
+  // Transform canvas components back to structured content format
+  const transformCanvasToContent = (canvasComponents, serviceData) => {
+    const content = {
+      hero: {},
+      overview: {},
+      benefits: {},
+      procedure: {},
+      faq: {},
+      aftercare: {},
+      cta: {}
+    };
+
+    if (!canvasComponents || !Array.isArray(canvasComponents)) {
+      return content;
+    }
+
+    const serviceName = serviceData?.name || 'Dental Service';
+
+    canvasComponents.forEach(component => {
+      const componentHtml = component.component || '';
+      const componentType = component.type || '';
+      const props = component.props || {};
+
+      // Extract text content from HTML
+      const extractTextFromHtml = (html) => {
+        if (!html) return '';
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        return tempDiv.textContent || tempDiv.innerText || '';
+      };
+
+      // Hero Section
+      if (componentType === 'ServiceHero' || component.name?.includes('Hero') || componentHtml.includes('hero-section')) {
+        content.hero.title = props.title || extractTextFromHtml(componentHtml.match(/<h[1-6][^>]*>(.*?)<\/h[1-6]>/)?.[1]) || `${serviceName} - Professional Dental Care`;
+        content.hero.subtitle = props.subtitle || extractTextFromHtml(componentHtml.match(/<p[^>]*class="[^"]*subtitle[^"]*"[^>]*>(.*?)<\/p>/)?.[1]) || `Expert ${serviceName} services for optimal oral health`;
+        content.hero.description = props.description || extractTextFromHtml(componentHtml.match(/<p[^>]*class="[^"]*description[^"]*"[^>]*>(.*?)<\/p>/)?.[1]) || `Experience professional ${serviceName} treatment with our skilled dental team`;
+        content.hero.ctaText = props.ctaText || 'Schedule Consultation';
+      }
+
+      // Overview Section
+      if (componentType === 'ServiceOverview' || component.name?.includes('Overview') || componentHtml.includes('overview-section')) {
+        content.overview.title = props.title || extractTextFromHtml(componentHtml.match(/<h[2-6][^>]*>(.*?)<\/h[2-6]>/)?.[1]) || `About ${serviceName}`;
+        content.overview.content = props.content || extractTextFromHtml(componentHtml.match(/<p[^>]*>(.*?)<\/p>/)?.[1]) || `${serviceName} is a professional dental treatment designed to improve your oral health`;
+
+        // Extract highlights from lists
+        const listMatches = componentHtml.match(/<li[^>]*>(.*?)<\/li>/g);
+        if (listMatches) {
+          content.overview.highlights = listMatches.map(li => extractTextFromHtml(li));
+        } else {
+          content.overview.highlights = ['Professional dental care', 'Modern techniques', 'Personalized treatment'];
+        }
+      }
+
+      // Benefits Section (USP)
+      if (componentType === 'ServiceUSP' || component.name?.includes('Benefits') || component.name?.includes('USP') || componentHtml.includes('benefits-section')) {
+        content.benefits.title = props.title || extractTextFromHtml(componentHtml.match(/<h[2-6][^>]*>(.*?)<\/h[2-6]>/)?.[1]) || `Benefits of ${serviceName}`;
+        content.benefits.introduction = props.introduction || `Choosing ${serviceName} provides numerous advantages for your oral health and overall well-being.`;
+
+        // Extract benefit items from component
+        const benefitMatches = componentHtml.match(/<div[^>]*class="[^"]*benefit[^"]*"[^>]*>.*?<\/div>/g);
+        if (benefitMatches && benefitMatches.length > 0) {
+          content.benefits.list = benefitMatches.map((benefit, index) => {
+            const title = extractTextFromHtml(benefit.match(/<h[3-6][^>]*>(.*?)<\/h[3-6]>/)?.[1]) || `Benefit ${index + 1}`;
+            const description = extractTextFromHtml(benefit.match(/<p[^>]*>(.*?)<\/p>/)?.[1]) || 'Professional dental care benefit';
+            return { title, description };
+          });
+        } else {
+          // Fallback benefits
+          content.benefits.list = [
+            { title: 'Professional Expertise', description: 'Expert dental care from qualified professionals' },
+            { title: 'Modern Techniques', description: 'Advanced dental technology and proven methods' },
+            { title: 'Personalized Care', description: 'Treatment plans tailored to your specific needs' }
+          ];
+        }
+      }
+
+      // Procedure Section
+      if (componentType === 'ServiceProcedure' || component.name?.includes('Procedure') || componentHtml.includes('procedure-section')) {
+        content.procedure.title = props.title || extractTextFromHtml(componentHtml.match(/<h[2-6][^>]*>(.*?)<\/h[2-6]>/)?.[1]) || `The ${serviceName} Process`;
+
+        // Extract procedure steps
+        const stepMatches = componentHtml.match(/<div[^>]*class="[^"]*step[^"]*"[^>]*>.*?<\/div>/g);
+        if (stepMatches && stepMatches.length > 0) {
+          content.procedure.steps = stepMatches.map((step, index) => {
+            const title = extractTextFromHtml(step.match(/<h[3-6][^>]*>(.*?)<\/h[3-6]>/)?.[1]) || `Step ${index + 1}`;
+            const description = extractTextFromHtml(step.match(/<p[^>]*>(.*?)<\/p>/)?.[1]) || 'Procedure step description';
+            return { title, description };
+          });
+        } else {
+          // Fallback steps
+          content.procedure.steps = [
+            { title: 'Initial Consultation', description: 'Comprehensive examination and treatment planning' },
+            { title: 'Treatment Preparation', description: 'Preparation and setup for the procedure' },
+            { title: 'Procedure Execution', description: `Professional ${serviceName} treatment` },
+            { title: 'Follow-up Care', description: 'Post-treatment monitoring and care instructions' }
+          ];
+        }
+      }
+
+      // FAQ Section
+      if (componentType === 'ServiceFAQ' || component.name?.includes('FAQ') || componentHtml.includes('faq-section')) {
+        content.faq.title = props.title || extractTextFromHtml(componentHtml.match(/<h[2-6][^>]*>(.*?)<\/h[2-6]>/)?.[1]) || `Frequently Asked Questions`;
+
+        // Extract FAQ items
+        const faqMatches = componentHtml.match(/<div[^>]*class="[^"]*faq[^"]*"[^>]*>.*?<\/div>/g);
+        if (faqMatches && faqMatches.length > 0) {
+          content.faq.questions = faqMatches.map(faq => {
+            const question = extractTextFromHtml(faq.match(/<[^>]*class="[^"]*question[^"]*"[^>]*>(.*?)<\/[^>]*>/)?.[1]) || 'Common question';
+            const answer = extractTextFromHtml(faq.match(/<[^>]*class="[^"]*answer[^"]*"[^>]*>(.*?)<\/[^>]*>/)?.[1]) || 'Professional answer';
+            return { question, answer };
+          });
+        } else {
+          // Fallback FAQ
+          content.faq.questions = [
+            { question: `How long does ${serviceName} take?`, answer: 'Treatment duration varies based on individual needs and complexity.' },
+            { question: 'Is the procedure comfortable?', answer: 'We use modern techniques to ensure your comfort throughout the treatment.' }
+          ];
+        }
+      }
+
+      // Aftercare Section
+      if (componentType === 'ServiceAftercare' || component.name?.includes('Aftercare') || componentHtml.includes('aftercare-section')) {
+        content.aftercare.title = props.title || extractTextFromHtml(componentHtml.match(/<h[2-6][^>]*>(.*?)<\/h[2-6]>/)?.[1]) || 'Post-Treatment Care';
+
+        const instructionMatches = componentHtml.match(/<li[^>]*>(.*?)<\/li>/g);
+        if (instructionMatches) {
+          content.aftercare.instructions = instructionMatches.map(li => extractTextFromHtml(li));
+        } else {
+          content.aftercare.instructions = [
+            'Follow post-treatment care instructions',
+            'Schedule follow-up appointments as needed',
+            'Contact us if you have any concerns'
+          ];
+        }
+      }
+
+      // Call-to-Action Section
+      if (componentType === 'ServiceCTA' || component.name?.includes('CTA') || componentHtml.includes('cta-section')) {
+        content.cta.title = props.title || extractTextFromHtml(componentHtml.match(/<h[2-6][^>]*>(.*?)<\/h[2-6]>/)?.[1]) || `Ready for ${serviceName}?`;
+        content.cta.subtitle = props.subtitle || `Schedule your ${serviceName} consultation today`;
+        content.cta.buttonText = props.buttonText || 'Book Appointment';
+      }
+    });
+
+    return content;
+  };
+
   const loadWebsite = useCallback(async () => {
     try {
       setIsLoading(true);
 
-      // Load service page if in service mode
-      if (isServicePageMode && servicePageId) {
-        const servicePageResponse = await servicePageService.getServicePageForEditing(servicePageId);
+      // Load service page if in service mode (edit) or display mode
+      if (isServicePageMode) {
+        let servicePageResponse;
+
+        if (isEditMode && servicePageId) {
+          // Edit mode: Load by servicePageId
+          servicePageResponse = await servicePageService.getServicePageForEditing(servicePageId);
+        } else if (isViewMode && displayServiceSlug) {
+          // Display mode: Load by serviceSlug
+          console.log(`🔧 Loading service page for display mode: ${displayServiceSlug} on website ${websiteId}`);
+
+          try {
+            // Use the same API as ServicePage component
+            const response = await fetch(`http://localhost:5000/api/services/public/page/${websiteId}/${displayServiceSlug}?_t=${Date.now()}`, {
+              credentials: 'include',
+              cache: 'no-cache'
+            });
+
+            if (!response.ok) {
+              throw new Error('Service page not found');
+            }
+
+            const result = await response.json();
+
+            // Transform the response to match the expected format
+            servicePageResponse = {
+              success: true,
+              data: {
+                servicePage: result.data,
+                serviceInfo: result.data.serviceId, // The service info is in serviceId field
+                websiteSettings: {}
+              }
+            };
+          } catch (error) {
+            console.error('Error loading service page for display:', error);
+            setIsLoading(false);
+            return;
+          }
+        } else {
+          console.error('Missing required parameters for service page mode');
+          setIsLoading(false);
+          return;
+        }
         if (servicePageResponse.success && servicePageResponse.data && servicePageResponse.data.servicePage) {
           setServicePage(servicePageResponse.data.servicePage);
+          setServiceInfo(servicePageResponse.data.serviceInfo);
           setWebsite(servicePageResponse.data.servicePage.websiteId);
 
           // Load service page components
@@ -840,7 +1052,7 @@ const SimpleDragDropBuilder = () => {
     } else {
       navigate('/websites');
     }
-  }, [websiteId, servicePageId, mode, navigate, loadWebsite, loadComponents]);
+  }, [websiteId, servicePageId, actualMode, navigate, loadWebsite, loadComponents]);
 
   // Auto-map services to headers when website builder loads (run only once)
   useEffect(() => {
@@ -1504,18 +1716,36 @@ const SimpleDragDropBuilder = () => {
       setSaving(true);
 
       if (isServicePageMode && servicePageId) {
-        // Save service page content
-        await servicePageService.updateServicePageComponents(servicePageId, {
+        // Transform canvas components to structured content format
+        const transformedContent = transformCanvasToContent(canvasComponents, serviceInfo || {});
+
+        console.log('Transformed content for sync:', transformedContent);
+
+        // Save both components AND transformed content structure
+        await servicePageService.updateServicePageContent(servicePageId, {
+          content: transformedContent,
           components: canvasComponents,
           globalSettings,
-          changeLog: 'Manual save from drag-drop editor'
+          changeLog: 'Manual save from drag-drop editor - content synchronized'
         });
+
+        // Also save components separately for backward compatibility
+        try {
+          await servicePageService.updateServicePageComponents(servicePageId, {
+            components: canvasComponents,
+            globalSettings,
+            changeLog: 'Component save from drag-drop editor'
+          });
+        } catch (error) {
+          console.warn('Component-only save failed (non-critical):', error);
+        }
 
         // Sync with unified content system if enabled
         if (unifiedContentEnabled) {
           try {
             await UnifiedContentService.updateComponents(servicePageId, canvasComponents, {
               globalSettings,
+              transformedContent,
               timestamp: new Date().toISOString(),
               source: 'destack_editor_save'
             });
@@ -1526,7 +1756,7 @@ const SimpleDragDropBuilder = () => {
           }
         }
 
-        showSnackbar('Service page saved successfully!');
+        showSnackbar('Service page saved and synchronized successfully!');
       } else {
         // Prepare pages data for regular website
         const updatedPages = [{
@@ -1562,11 +1792,26 @@ const SimpleDragDropBuilder = () => {
 
   const handlePublish = async () => {
     try {
+      // First save with content synchronization
       await handleManualSave();
 
       if (isServicePageMode && servicePageId) {
+        // Verify content synchronization before publishing
+        try {
+          const verificationResponse = await servicePageService.getServicePageForEditing(servicePageId);
+          if (verificationResponse.success && verificationResponse.data) {
+            console.log('✅ Content verification before publish:', verificationResponse.data.servicePage.content);
+          }
+        } catch (verifyError) {
+          console.warn('Content verification failed, proceeding with publish:', verifyError);
+        }
+
+        // Publish the service page
         await servicePageService.publishServicePage(servicePageId);
-        showSnackbar('Service page published successfully!');
+        showSnackbar('Service page published and synchronized successfully!');
+
+        // Log success for debugging
+        console.log(`🚀 Service page ${servicePageId} published with synchronized content`);
       } else {
         await websiteService.publishWebsite(websiteId);
         showSnackbar('Website published successfully!');
@@ -1574,6 +1819,7 @@ const SimpleDragDropBuilder = () => {
     } catch (error) {
       const errorType = isServicePageMode ? 'service page' : 'website';
       showSnackbar(`Error publishing ${errorType}: ` + error.message, 'error');
+      console.error(`❌ Publish error for ${errorType}:`, error);
     }
   };
 
@@ -1969,17 +2215,32 @@ const SimpleDragDropBuilder = () => {
             </Box>
 
             <Stack direction="row" spacing={1}>
-              <Button
-                onClick={handleManualSave}
-                startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <SaveIcon />}
-                disabled={saving}
-                variant="contained"
-                color="success"
-                sx={{ bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' } }}
-              >
-                {saving ? 'Saving...' : 'Save'}
-              </Button>
+              {/* Only show editing controls in website and service edit modes */}
+              {(isWebsiteMode || isEditMode) && (
+                <>
+                  <Button
+                    onClick={handleManualSave}
+                    startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <SaveIcon />}
+                    disabled={saving}
+                    variant="contained"
+                    color="success"
+                    sx={{ bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' } }}
+                  >
+                    {saving ? 'Saving...' : 'Save'}
+                  </Button>
 
+                  <Button
+                    onClick={handlePublish}
+                    startIcon={<PublishIcon />}
+                    variant="contained"
+                    sx={{ bgcolor: 'warning.main', '&:hover': { bgcolor: 'warning.dark' } }}
+                  >
+                    Publish
+                  </Button>
+                </>
+              )}
+
+              {/* Preview button available in both modes */}
               <Button
                 onClick={handlePreview}
                 startIcon={<PreviewIcon />}
@@ -1987,17 +2248,26 @@ const SimpleDragDropBuilder = () => {
                 color="inherit"
                 sx={{ borderColor: 'white', color: 'white', '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' } }}
               >
-                {isPreviewMode ? 'Edit' : 'Preview'}
+                {isPreviewMode ? 'Exit Preview' : 'Preview'}
               </Button>
 
-              <Button
-                onClick={handlePublish}
-                startIcon={<PublishIcon />}
-                variant="contained"
-                sx={{ bgcolor: 'warning.main', '&:hover': { bgcolor: 'warning.dark' } }}
-              >
-                Publish
-              </Button>
+              {/* Edit button only in display mode */}
+              {isViewMode && (
+                <Button
+                  onClick={() => {
+                    // Navigate to edit mode
+                    if (servicePage && serviceInfo) {
+                      const editUrl = `/full-destack-editor?servicePageId=${servicePage._id}&mode=service&websiteId=${websiteId}`;
+                      navigate(editUrl);
+                    }
+                  }}
+                  startIcon={<EditIcon />}
+                  variant="contained"
+                  sx={{ bgcolor: 'primary.main', '&:hover': { bgcolor: 'primary.dark' } }}
+                >
+                  Edit This Page
+                </Button>
+              )}
 
               <Button
                 onClick={() => setEnhancedServiceSelectorOpen(true)}
@@ -2021,8 +2291,8 @@ const SimpleDragDropBuilder = () => {
         </AppBar>
 
         <Box sx={{ display: 'flex', flex: 1 }}>
-          {/* Left Sidebar - Component Filter & Library */}
-          {!isPreviewMode && (
+          {/* Left Sidebar - Component Filter & Library - Only in website and service edit modes */}
+          {!isPreviewMode && (isWebsiteMode || isEditMode) && (
             <Box sx={{ width: 350, borderRight: 1, borderColor: 'divider', display: 'flex', flexDirection: 'column', bgcolor: 'grey.50' }}>
               {/* Filter Section */}
               <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', bgcolor: 'white' }}>
@@ -2252,18 +2522,18 @@ const SimpleDragDropBuilder = () => {
                         sx={{
                           mb: isPreviewMode ? 0 : 3,
                           position: 'relative',
-                          border: isPreviewMode ? 'none' : selectedComponent?.instanceId === component.instanceId ? '2px solid' : '1px solid transparent',
+                          border: (isPreviewMode || isViewMode) ? 'none' : selectedComponent?.instanceId === component.instanceId ? '2px solid' : '1px solid transparent',
                           borderColor: selectedComponent?.instanceId === component.instanceId ? 'primary.main' : 'transparent',
                           borderRadius: 1,
-                          '&:hover': !isPreviewMode ? {
+                          '&:hover': (!isPreviewMode && (isWebsiteMode || isEditMode)) ? {
                             borderColor: 'primary.main',
                             '& .component-controls': { opacity: 1 }
                           } : {}
                         }}
-                        onClick={!isPreviewMode ? () => handleCanvasComponentSelect(component) : undefined}
+                        onClick={!isPreviewMode && (isWebsiteMode || isEditMode) ? () => handleCanvasComponentSelect(component) : undefined}
                       >
-                        {/* Component Controls */}
-                        {!isPreviewMode && (
+                        {/* Component Controls - Only in website and service edit modes */}
+                        {!isPreviewMode && (isWebsiteMode || isEditMode) && (
                           <Box
                             className="component-controls"
                             sx={{
@@ -2341,8 +2611,8 @@ const SimpleDragDropBuilder = () => {
             </Box>
           </Box>
 
-          {/* Right Sidebar - Properties */}
-          {!isPreviewMode && (
+          {/* Right Sidebar - Properties - Only in website and service edit modes */}
+          {!isPreviewMode && (isWebsiteMode || isEditMode) && (
             <Box sx={{ width: 300, borderLeft: 1, borderColor: 'divider', p: 2 }}>
               <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 2 }}>
                 Properties
@@ -3021,8 +3291,8 @@ const SimpleDragDropBuilder = () => {
           />
         )}
 
-        {/* Unified Content Sidebar - Service Page Mode Only */}
-        {isServicePageMode && servicePageId && (
+        {/* Unified Content Sidebar - Edit Mode Only */}
+        {isServicePageMode && servicePageId && isEditMode && (
           <DestackUnifiedContentSidebar
             servicePageId={servicePageId}
             websiteId={websiteId}

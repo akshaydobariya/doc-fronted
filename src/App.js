@@ -87,9 +87,9 @@ function App() {
             {/* Public Landing Page - Built with Destack */}
             <Route path="/landing" element={<SimpleLandingPage />} />
 
-            {/* Public Service Pages */}
-            <Route path="/services/:serviceSlug" element={<ServicePage />} />
-            <Route path="/website/:websiteId/services/:serviceSlug" element={<ServicePage />} />
+            {/* Public Service Pages - Now using SimpleDragDropBuilder in display mode */}
+            <Route path="/services/:serviceSlug" element={<SimpleDragDropBuilder />} />
+            <Route path="/website/:websiteId/services/:serviceSlug" element={<SimpleDragDropBuilder />} />
 
             {/* Test Component */}
             <Route path="/test-components" element={<ComponentTest />} />

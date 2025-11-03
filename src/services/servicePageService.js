@@ -264,5 +264,28 @@ export const servicePageService = {
   async publishServicePage(servicePageId) {
     const response = await api.post(`/service-pages/${servicePageId}/publish`);
     return response.data;
+  },
+
+  /**
+   * Get unified editing data (service page + unified content + template info) atomically
+   */
+  async getUnifiedEditingData(servicePageId, options = {}) {
+    const params = new URLSearchParams();
+
+    if (options.includeTemplateInfo) params.append('includeTemplateInfo', 'true');
+
+    const queryString = params.toString();
+    const url = `/service-pages/${servicePageId}/unified-data${queryString ? `?${queryString}` : ''}`;
+
+    const response = await api.get(url);
+    return response.data;
+  },
+
+  /**
+   * Save unified editing data atomically (service page + unified content)
+   */
+  async saveUnifiedEditingData(servicePageId, unifiedData) {
+    const response = await api.put(`/service-pages/${servicePageId}/unified-data`, unifiedData);
+    return response.data;
   }
 };

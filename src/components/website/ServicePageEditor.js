@@ -69,32 +69,81 @@ const ServicePageEditor = () => {
   const loadServicePageData = async () => {
     try {
       setLoading(true);
-      const response = await servicePageService.getServicePageForEditing(servicePageId);
+
+      // Use the new unified data endpoint for atomic loading
+      const response = await servicePageService.getUnifiedEditingData(servicePageId, { includeTemplateInfo: true });
 
       if (response.success) {
-        const { servicePage, currentVersionData, editingCapabilities, websiteSettings, serviceInfo } = response.data;
+        const {
+          servicePage,
+          unifiedContent,
+          syncStatus,
+          templateInfo,
+          conflictResolution
+        } = response.data;
 
+        // Set service page data
         setServicePage(servicePage);
-        setCurrentVersionData(currentVersionData);
-        setEditingCapabilities(editingCapabilities);
-        setWebsiteSettings(websiteSettings);
-        setServiceInfo(serviceInfo);
+        setCurrentVersionData(servicePage.currentVersionData);
+        setEditingCapabilities(servicePage.editingCapabilities);
         setEditingMode(servicePage.editingMode || 'template');
 
+        // Set unified content data
+        setUnifiedContent(unifiedContent);
+        setSyncStatus(syncStatus);
+
+        // Handle conflicts if any
+        if (conflictResolution.hasConflicts) {
+          setConflicts([{
+            type: conflictResolution.conflictSource,
+            message: 'Template and content are out of sync',
+            severity: 'warning'
+          }]);
+        } else {
+          setConflicts([]);
+        }
+
         // Initialize components based on editing mode
-        if (servicePage.editingMode === 'visual' && currentVersionData?.components) {
-          setComponents(currentVersionData.components);
+        if (servicePage.editingMode === 'visual' && servicePage.currentVersionData?.components) {
+          setComponents(servicePage.currentVersionData.components);
         } else {
           // Generate components from template content
           setComponents(generateComponentsFromContent(servicePage.content));
         }
 
-        // Load unified content data
-        await loadUnifiedContentData(servicePageId);
+        // Show sync status notification
+        if (syncStatus === 'out_of_sync') {
+          toast.info('Template and content are out of sync. Please review conflicts.');
+        } else if (syncStatus === 'in_sync') {
+          toast.success('All content is synchronized.');
+        }
       }
     } catch (error) {
-      console.error('Error loading service page:', error);
+      console.error('Error loading unified service page data:', error);
       toast.error('Failed to load service page data');
+
+      // Fallback to individual loading if unified endpoint fails
+      try {
+        const fallbackResponse = await servicePageService.getServicePageForEditing(servicePageId);
+        if (fallbackResponse.success) {
+          const { servicePage, currentVersionData, editingCapabilities } = fallbackResponse.data;
+          setServicePage(servicePage);
+          setCurrentVersionData(currentVersionData);
+          setEditingCapabilities(editingCapabilities);
+          setEditingMode(servicePage.editingMode || 'template');
+
+          if (servicePage.editingMode === 'visual' && currentVersionData?.components) {
+            setComponents(currentVersionData.components);
+          } else {
+            setComponents(generateComponentsFromContent(servicePage.content));
+          }
+
+          toast.warning('Using fallback data loading. Some features may be limited.');
+        }
+      } catch (fallbackError) {
+        console.error('Fallback loading also failed:', fallbackError);
+        toast.error('Failed to load service page data completely');
+      }
     } finally {
       setLoading(false);
     }
@@ -272,19 +321,52 @@ const ServicePageEditor = () => {
     try {
       setSaving(true);
 
-      const updateData = {
-        content: servicePage.content,
+      // Prepare unified data for atomic save
+      const unifiedData = {
+        servicePageContent: servicePage.content,
+        editingMode: editingMode,
         components: editingMode === 'visual' ? components : [],
         seo: servicePage.seo,
         design: servicePage.design,
-        editingMode: editingMode,
         changeLog: 'Auto-saved from editor'
       };
 
-      const response = await servicePageService.updateServicePageContent(servicePageId, updateData);
+      // Include unified content data if available
+      if (unifiedContent) {
+        unifiedData.unifiedContentData = {
+          content: unifiedContent.content,
+          aiSuggestions: aiSuggestions,
+          conflicts: conflicts
+        };
+      }
 
-      if (response.success) {
-        toast.success('Changes saved successfully');
+      // Try unified save first, fall back to individual save if needed
+      try {
+        const response = await servicePageService.saveUnifiedEditingData(servicePageId, unifiedData);
+
+        if (response.success) {
+          setSyncStatus('in_sync');
+          toast.success('Changes saved successfully');
+        }
+      } catch (unifiedError) {
+        console.warn('Unified save failed, trying individual save:', unifiedError);
+
+        // Fallback to individual save
+        const individualData = {
+          content: servicePage.content,
+          components: editingMode === 'visual' ? components : [],
+          seo: servicePage.seo,
+          design: servicePage.design,
+          editingMode: editingMode,
+          changeLog: 'Auto-saved from editor (fallback)'
+        };
+
+        const fallbackResponse = await servicePageService.updateServicePageContent(servicePageId, individualData);
+
+        if (fallbackResponse.success) {
+          setSyncStatus('fallback_save');
+          toast.warning('Changes saved (limited functionality mode)');
+        }
       }
     } catch (error) {
       console.error('Error saving service page:', error);

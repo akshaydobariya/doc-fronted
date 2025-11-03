@@ -115,9 +115,11 @@ const ServicePage = () => {
 
       setWebsite(websiteData);
 
-      // Then get the service page using the public endpoint
-      const response = await fetch(`http://localhost:5000/api/services/public/page/${websiteData._id}/${serviceSlug}`, {
-        credentials: 'include'
+      // Then get the service page using the public endpoint with cache-busting
+      const cacheBuster = Date.now();
+      const response = await fetch(`http://localhost:5000/api/services/public/page/${websiteData._id}/${serviceSlug}?_t=${cacheBuster}`, {
+        credentials: 'include',
+        cache: 'no-cache' // Ensure fresh data from server
       });
 
       if (!response.ok) {
