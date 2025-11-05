@@ -32,7 +32,11 @@ import {
   Assignment as ProcedureIcon,
   QuestionAnswer as FAQIcon,
   LocalHospital as CareIcon,
-  ArrowForward as ArrowIcon
+  ArrowForward as ArrowIcon,
+  Warning as WarningIcon,
+  HelpOutline as HelpIcon,
+  Psychology as MythIcon,
+  Healing as HealingIcon
 } from '@mui/icons-material';
 import { Helmet } from 'react-helmet';
 import serviceService from '../../services/serviceService';
@@ -293,8 +297,44 @@ const ServicePageDisplay = ({
     );
   };
 
-  const renderServiceBenefits = () => {
-    const benefits = servicePage?.content?.serviceBenefits;
+  // Render Overview Section (Section 1)
+  const renderOverviewSection = () => {
+    const overview = servicePage?.content?.overview;
+    if (!overview?.content) return null;
+
+    return (
+      <Container maxWidth="lg" sx={{ mb: 6 }}>
+        <Typography
+          variant="h3"
+          sx={{
+            fontSize: { xs: '1.8rem', md: '2.2rem' },
+            fontWeight: 600,
+            color: theme.textColor,
+            mb: 4,
+            textAlign: 'center'
+          }}
+        >
+          {overview.title || `About ${service.name}`}
+        </Typography>
+        <Paper sx={{ p: 4, borderRadius: 2 }}>
+          <Typography
+            variant="body1"
+            sx={{
+              color: theme.textColor,
+              lineHeight: 1.7,
+              fontSize: '1.1rem'
+            }}
+          >
+            {overview.content}
+          </Typography>
+        </Paper>
+      </Container>
+    );
+  };
+
+  // Render Benefits Section (Section 2)
+  const renderBenefitsSection = () => {
+    const benefits = servicePage?.content?.benefits?.list;
     if (!benefits || !Array.isArray(benefits)) return null;
 
     return (
@@ -309,7 +349,7 @@ const ServicePageDisplay = ({
             textAlign: 'center'
           }}
         >
-          Benefits of {service.name}
+          {servicePage?.content?.benefits?.title || `Benefits of ${service.name}`}
         </Typography>
 
         <Grid container spacing={3}>
@@ -340,7 +380,7 @@ const ServicePageDisplay = ({
                         variant="body2"
                         sx={{ color: theme.textColor, lineHeight: 1.6 }}
                       >
-                        {benefit.description}
+                        {benefit.content || benefit.description}
                       </Typography>
                     </Box>
                   </Box>
@@ -353,9 +393,10 @@ const ServicePageDisplay = ({
     );
   };
 
-  const renderProcedureSteps = () => {
-    const steps = servicePage?.content?.procedureSteps;
-    if (!steps || !Array.isArray(steps)) return null;
+  // Render Procedure Section (Section 3 - Why Treatment Needed)
+  const renderProcedureSection = () => {
+    const procedure = servicePage?.content?.procedure?.steps;
+    if (!procedure || !Array.isArray(procedure)) return null;
 
     return (
       <Container maxWidth="lg" sx={{ mb: 6 }}>
@@ -369,11 +410,11 @@ const ServicePageDisplay = ({
             textAlign: 'center'
           }}
         >
-          The {service.name} Procedure
+          {servicePage?.content?.procedure?.title || `Why You Need ${service.name}`}
         </Typography>
 
         <Grid container spacing={3}>
-          {steps.map((step, index) => (
+          {procedure.map((step, index) => (
             <Grid item xs={12} md={6} lg={4} key={index}>
               <Paper
                 elevation={2}
@@ -399,7 +440,7 @@ const ServicePageDisplay = ({
                       mr: 2
                     }}
                   >
-                    {step.step || index + 1}
+                    {step.stepNumber || index + 1}
                   </Box>
                   <Typography
                     variant="h6"
@@ -422,8 +463,487 @@ const ServicePageDisplay = ({
     );
   };
 
+  // Render Symptoms Section (Section 4)
+  const renderSymptomsSection = () => {
+    const symptoms = servicePage?.content?.comprehensiveContent?.symptoms?.bulletPoints;
+    if (!symptoms || !Array.isArray(symptoms)) return null;
+
+    return (
+      <Container maxWidth="lg" sx={{ mb: 6 }}>
+        <Typography
+          variant="h3"
+          sx={{
+            fontSize: { xs: '1.8rem', md: '2.2rem' },
+            fontWeight: 600,
+            color: theme.textColor,
+            mb: 4,
+            textAlign: 'center'
+          }}
+        >
+          {servicePage?.content?.comprehensiveContent?.symptoms?.title || 'Signs You May Need Treatment'}
+        </Typography>
+
+        <Grid container spacing={3}>
+          {symptoms.map((symptom, index) => (
+            <Grid item xs={12} md={6} key={index}>
+              <Card
+                sx={{
+                  height: '100%',
+                  borderLeft: `4px solid #f57c00`,
+                  '&:hover': {
+                    boxShadow: 6,
+                    transform: 'translateY(-2px)',
+                    transition: 'all 0.3s ease'
+                  }
+                }}
+              >
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                    <ServiceIcon sx={{ color: '#f57c00', mt: 0.5 }} />
+                    <Box>
+                      <Typography
+                        variant="h6"
+                        sx={{ fontWeight: 600, mb: 1, color: theme.textColor }}
+                      >
+                        {symptom.title || `Symptom ${index + 1}`}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{ color: theme.textColor, lineHeight: 1.6 }}
+                      >
+                        {symptom.content}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+    );
+  };
+
+  // Render Consequences Section (Section 5)
+  const renderConsequencesSection = () => {
+    const consequences = servicePage?.content?.comprehensiveContent?.consequences?.bulletPoints;
+    if (!consequences || !Array.isArray(consequences)) return null;
+
+    return (
+      <Container maxWidth="lg" sx={{ mb: 6 }}>
+        <Typography
+          variant="h3"
+          sx={{
+            fontSize: { xs: '1.8rem', md: '2.2rem' },
+            fontWeight: 600,
+            color: theme.textColor,
+            mb: 4,
+            textAlign: 'center'
+          }}
+        >
+          {servicePage?.content?.comprehensiveContent?.consequences?.title || 'What Happens If Treatment Is Delayed?'}
+        </Typography>
+
+        <Grid container spacing={3}>
+          {consequences.map((consequence, index) => (
+            <Grid item xs={12} md={6} key={index}>
+              <Card
+                sx={{
+                  height: '100%',
+                  borderLeft: `4px solid #d32f2f`,
+                  '&:hover': {
+                    boxShadow: 6,
+                    transform: 'translateY(-2px)',
+                    transition: 'all 0.3s ease'
+                  }
+                }}
+              >
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                    <WarningIcon sx={{ color: '#d32f2f', mt: 0.5 }} />
+                    <Box>
+                      <Typography
+                        variant="h6"
+                        sx={{ fontWeight: 600, mb: 1, color: theme.textColor }}
+                      >
+                        {consequence.title || `Risk ${index + 1}`}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{ color: theme.textColor, lineHeight: 1.6 }}
+                      >
+                        {consequence.content}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+    );
+  };
+
+  // Render Procedure Details Section (Section 6)
+  const renderProcedureDetailsSection = () => {
+    const procedureDetails = servicePage?.content?.comprehensiveContent?.procedureDetails?.steps;
+    if (!procedureDetails || !Array.isArray(procedureDetails)) return null;
+
+    return (
+      <Container maxWidth="lg" sx={{ mb: 6 }}>
+        <Typography
+          variant="h3"
+          sx={{
+            fontSize: { xs: '1.8rem', md: '2.2rem' },
+            fontWeight: 600,
+            color: theme.textColor,
+            mb: 4,
+            textAlign: 'center'
+          }}
+        >
+          {servicePage?.content?.comprehensiveContent?.procedureDetails?.title || 'Step-by-Step Procedure'}
+        </Typography>
+
+        <Grid container spacing={3}>
+          {procedureDetails.map((step, index) => (
+            <Grid item xs={12} md={6} lg={4} key={index}>
+              <Paper
+                elevation={2}
+                sx={{
+                  p: 3,
+                  height: '100%',
+                  borderRadius: 2,
+                  border: `1px solid ${theme.primaryColor}20`,
+                  backgroundColor: '#f8f9fa'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <Box
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: '50%',
+                      backgroundColor: theme.primaryColor,
+                      color: 'white',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 600,
+                      mr: 2
+                    }}
+                  >
+                    {step.stepNumber || index + 1}
+                  </Box>
+                  <Typography
+                    variant="h6"
+                    sx={{ fontWeight: 600, color: theme.textColor }}
+                  >
+                    {step.title}
+                  </Typography>
+                </Box>
+                <Typography
+                  variant="body2"
+                  sx={{ color: theme.textColor, lineHeight: 1.6 }}
+                >
+                  {step.description}
+                </Typography>
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+    );
+  };
+
+  // Render Aftercare Section (Section 7)
+  const renderAftercareSection = () => {
+    const aftercare = servicePage?.content?.aftercare?.instructions;
+    if (!aftercare || !Array.isArray(aftercare)) return null;
+
+    return (
+      <Container maxWidth="lg" sx={{ mb: 6 }}>
+        <Typography
+          variant="h3"
+          sx={{
+            fontSize: { xs: '1.8rem', md: '2.2rem' },
+            fontWeight: 600,
+            color: theme.textColor,
+            mb: 4,
+            textAlign: 'center'
+          }}
+        >
+          {servicePage?.content?.aftercare?.title || 'Post-Treatment Care'}
+        </Typography>
+
+        <Grid container spacing={3}>
+          {aftercare.map((instruction, index) => (
+            <Grid item xs={12} md={6} key={index}>
+              <Card
+                sx={{
+                  height: '100%',
+                  borderLeft: `4px solid #4caf50`,
+                  '&:hover': {
+                    boxShadow: 6,
+                    transform: 'translateY(-2px)',
+                    transition: 'all 0.3s ease'
+                  }
+                }}
+              >
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                    <CareIcon sx={{ color: '#4caf50', mt: 0.5 }} />
+                    <Box>
+                      <Typography
+                        variant="h6"
+                        sx={{ fontWeight: 600, mb: 1, color: theme.textColor }}
+                      >
+                        {instruction.title || `Care Step ${index + 1}`}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{ color: theme.textColor, lineHeight: 1.6 }}
+                      >
+                        {instruction.description || instruction.content}
+                      </Typography>
+                      {instruction.timeframe && (
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: theme.primaryColor,
+                            fontWeight: 600,
+                            mt: 1,
+                            display: 'block'
+                          }}
+                        >
+                          {instruction.timeframe}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+    );
+  };
+
+  // Render Detailed Benefits Section (Section 8)
+  const renderDetailedBenefitsSection = () => {
+    const detailedBenefits = servicePage?.content?.comprehensiveContent?.detailedBenefits?.bulletPoints;
+    if (!detailedBenefits || !Array.isArray(detailedBenefits)) return null;
+
+    return (
+      <Container maxWidth="lg" sx={{ mb: 6 }}>
+        <Typography
+          variant="h3"
+          sx={{
+            fontSize: { xs: '1.8rem', md: '2.2rem' },
+            fontWeight: 600,
+            color: theme.textColor,
+            mb: 4,
+            textAlign: 'center'
+          }}
+        >
+          {servicePage?.content?.comprehensiveContent?.detailedBenefits?.title || 'Detailed Treatment Benefits'}
+        </Typography>
+
+        <Grid container spacing={3}>
+          {detailedBenefits.map((benefit, index) => (
+            <Grid item xs={12} md={6} key={index}>
+              <Card
+                sx={{
+                  height: '100%',
+                  borderLeft: `4px solid #2196f3`,
+                  '&:hover': {
+                    boxShadow: 6,
+                    transform: 'translateY(-2px)',
+                    transition: 'all 0.3s ease'
+                  }
+                }}
+              >
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                    <CheckIcon sx={{ color: '#2196f3', mt: 0.5 }} />
+                    <Box>
+                      <Typography
+                        variant="h6"
+                        sx={{ fontWeight: 600, mb: 1, color: theme.textColor }}
+                      >
+                        {benefit.title || `Benefit ${index + 1}`}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{ color: theme.textColor, lineHeight: 1.6 }}
+                      >
+                        {benefit.content}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+    );
+  };
+
+  // Render Side Effects Section (Section 9)
+  const renderSideEffectsSection = () => {
+    const sideEffects = servicePage?.content?.comprehensiveContent?.sideEffects?.bulletPoints;
+    if (!sideEffects || !Array.isArray(sideEffects)) return null;
+
+    return (
+      <Container maxWidth="lg" sx={{ mb: 6 }}>
+        <Typography
+          variant="h3"
+          sx={{
+            fontSize: { xs: '1.8rem', md: '2.2rem' },
+            fontWeight: 600,
+            color: theme.textColor,
+            mb: 4,
+            textAlign: 'center'
+          }}
+        >
+          {servicePage?.content?.comprehensiveContent?.sideEffects?.title || 'Potential Side Effects'}
+        </Typography>
+
+        <Grid container spacing={3}>
+          {sideEffects.map((effect, index) => (
+            <Grid item xs={12} md={6} key={index}>
+              <Card
+                sx={{
+                  height: '100%',
+                  borderLeft: `4px solid #ff9800`,
+                  '&:hover': {
+                    boxShadow: 6,
+                    transform: 'translateY(-2px)',
+                    transition: 'all 0.3s ease'
+                  }
+                }}
+              >
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                    <HealingIcon sx={{ color: '#ff9800', mt: 0.5 }} />
+                    <Box>
+                      <Typography
+                        variant="h6"
+                        sx={{ fontWeight: 600, mb: 1, color: theme.textColor }}
+                      >
+                        {effect.title || `Side Effect ${index + 1}`}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{ color: theme.textColor, lineHeight: 1.6 }}
+                      >
+                        {effect.content}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+    );
+  };
+
+  // Render Myths and Facts Section (Section 10)
+  const renderMythsAndFactsSection = () => {
+    const mythsAndFacts = servicePage?.content?.comprehensiveContent?.mythsAndFacts?.items;
+    if (!mythsAndFacts || !Array.isArray(mythsAndFacts)) return null;
+
+    return (
+      <Container maxWidth="lg" sx={{ mb: 6 }}>
+        <Typography
+          variant="h3"
+          sx={{
+            fontSize: { xs: '1.8rem', md: '2.2rem' },
+            fontWeight: 600,
+            color: theme.textColor,
+            mb: 4,
+            textAlign: 'center'
+          }}
+        >
+          {servicePage?.content?.comprehensiveContent?.mythsAndFacts?.title || 'Myths vs Facts'}
+        </Typography>
+
+        <Grid container spacing={3}>
+          {mythsAndFacts.map((item, index) => (
+            <Grid item xs={12} key={index}>
+              <Paper
+                elevation={2}
+                sx={{
+                  p: 3,
+                  borderRadius: 2,
+                  border: `1px solid ${theme.primaryColor}20`,
+                  mb: 2
+                }}
+              >
+                <Grid container spacing={4}>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                      <Box
+                        sx={{
+                          backgroundColor: '#f44336',
+                          color: 'white',
+                          borderRadius: 1,
+                          px: 2,
+                          py: 0.5,
+                          fontWeight: 600,
+                          fontSize: '0.8rem'
+                        }}
+                      >
+                        MYTH
+                      </Box>
+                      <Typography
+                        variant="body1"
+                        sx={{ color: theme.textColor, lineHeight: 1.6 }}
+                      >
+                        {item.myth}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                      <Box
+                        sx={{
+                          backgroundColor: '#4caf50',
+                          color: 'white',
+                          borderRadius: 1,
+                          px: 2,
+                          py: 0.5,
+                          fontWeight: 600,
+                          fontSize: '0.8rem'
+                        }}
+                      >
+                        FACT
+                      </Box>
+                      <Typography
+                        variant="body1"
+                        sx={{ color: theme.textColor, lineHeight: 1.6 }}
+                      >
+                        {item.fact}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+    );
+  };
+
+  // Render FAQ Section (Section 11)
   const renderFAQSection = () => {
-    const faqs = servicePage?.content?.faqs;
+    // Try both locations for FAQ data
+    const faqs = servicePage?.content?.faq?.questions || servicePage?.content?.comprehensiveContent?.comprehensiveFAQ?.questions;
     if (!faqs || !Array.isArray(faqs)) return null;
 
     return (
@@ -575,9 +1095,40 @@ const ServicePageDisplay = ({
       </Container>
 
       {renderHeroSection()}
-      {renderServiceBenefits()}
-      {renderProcedureSteps()}
+
+      {/* Section 1: Overview/Introduction */}
+      {renderOverviewSection()}
+
+      {/* Section 2: What does it entail (Benefits) */}
+      {renderBenefitsSection()}
+
+      {/* Section 3: Why undergo treatment (Procedure) */}
+      {renderProcedureSection()}
+
+      {/* Section 4: Symptoms requiring treatment */}
+      {renderSymptomsSection()}
+
+      {/* Section 5: Consequences if not performed */}
+      {renderConsequencesSection()}
+
+      {/* Section 6: Detailed procedure steps */}
+      {renderProcedureDetailsSection()}
+
+      {/* Section 7: Post-treatment care */}
+      {renderAftercareSection()}
+
+      {/* Section 8: Detailed benefits */}
+      {renderDetailedBenefitsSection()}
+
+      {/* Section 9: Side effects */}
+      {renderSideEffectsSection()}
+
+      {/* Section 10: Myths vs Facts */}
+      {renderMythsAndFactsSection()}
+
+      {/* Section 11: Comprehensive FAQ */}
       {renderFAQSection()}
+
       {renderRelatedServices()}
 
       {/* CTA Section */}

@@ -274,20 +274,64 @@ const SimpleDragDropBuilder = () => {
       tags: ['hero', 'service', 'banner'],
       instanceId: `${heroId}-${Date.now()}`,
       component: `
-        <section class="service-hero" style="background: white; padding: 0; margin: 0;">
-          <div style="position: relative; width: 100%; height: auto;">
-            <img src="${getBannerImage(serviceName, serviceCategory, content.hero)}"
-                 alt="${serviceName} Banner"
-                 style="width: 100%; height: auto; display: block; max-height: 500px; object-fit: cover;">
-            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: white; z-index: 2;">
-              <h1 data-text="true" style="font-size: 48px; font-weight: bold; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
+        <section class="service-hero" style="background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%); padding: 0; margin: 0; position: relative; overflow: hidden;">
+          <!-- Subtle geometric background elements -->
+          <div style="position: absolute; top: -200px; right: -200px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(99, 102, 241, 0.03) 0%, transparent 70%); border-radius: 50%;"></div>
+          <div style="position: absolute; bottom: -150px; left: -150px; width: 300px; height: 300px; background: radial-gradient(circle, rgba(16, 185, 129, 0.03) 0%, transparent 70%); border-radius: 50%;"></div>
+
+          <div style="position: relative; width: 100%; min-height: 70vh; display: flex; align-items: center;">
+            <!-- Premium image with subtle overlay -->
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;">
+              <img src="${getBannerImage(serviceName, serviceCategory, content.hero)}"
+                   alt="${serviceName} Banner"
+                   style="width: 100%; height: 100%; object-fit: cover; opacity: 0.12; filter: blur(0.5px);">
+            </div>
+
+            <!-- Content container with premium typography -->
+            <div style="position: relative; z-index: 3; max-width: 1200px; margin: 0 auto; padding: 120px 40px; text-align: center;">
+              <!-- Premium badge -->
+              <div style="display: inline-block; padding: 8px 24px; background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.12); border-radius: 50px; margin-bottom: 40px;">
+                <span style="color: #6366f1; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px;">Premium Dental Care</span>
+              </div>
+
+              <!-- Main heading with elegant typography -->
+              <h1 data-text="true" style="font-size: clamp(42px, 5vw, 72px); font-weight: 300; margin: 0 0 24px 0; color: #1a1a1a; line-height: 1.1; letter-spacing: -0.02em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;">
                 ${content.hero?.title || serviceName}
               </h1>
+
+              <!-- Subtle separator line -->
+              <div style="width: 60px; height: 1px; background: linear-gradient(90deg, transparent, #6366f1, transparent); margin: 32px auto;"></div>
+
               ${(content.hero?.subtitle || serviceDescription) ? `
-                <p data-text="true" style="font-size: 20px; margin: 10px 0 0 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
+                <p data-text="true" style="font-size: 20px; font-weight: 400; margin: 0 0 48px 0; color: #6b7280; max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.6;">
                   ${content.hero?.subtitle || serviceDescription}
                 </p>
               ` : ''}
+
+              <!-- Premium CTA button -->
+              <div style="margin-top: 48px;">
+                <button data-text="true" style="
+                  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+                  color: white;
+                  padding: 16px 48px;
+                  border: none;
+                  border-radius: 12px;
+                  font-size: 16px;
+                  font-weight: 600;
+                  cursor: pointer;
+                  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.2);
+                  letter-spacing: 0.5px;
+                " onmouseover="
+                  this.style.transform = 'translateY(-2px)';
+                  this.style.boxShadow = '0 8px 32px rgba(99, 102, 241, 0.3)';
+                " onmouseout="
+                  this.style.transform = 'translateY(0)';
+                  this.style.boxShadow = '0 4px 16px rgba(99, 102, 241, 0.2)';
+                ">
+                  Book Consultation
+                </button>
+              </div>
             </div>
           </div>
         </section>
@@ -329,15 +373,37 @@ const SimpleDragDropBuilder = () => {
         tags: ['overview', 'mission', 'content'],
         instanceId: `${overviewId}-${Date.now()}`,
         component: `
-          <section class="service-overview" style="background: #f8f9fa; padding: 60px 20px;">
-            <div style="max-width: 1000px; margin: 0 auto;">
-              <h2 data-text="true" style="font-size: 32px; font-weight: bold; text-align: center; margin-bottom: 40px; color: #1976d2;">
-                ${content.overview.title || 'Overview'}
-              </h2>
-              <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                <div data-text="true" style="font-size: 16px; line-height: 1.8; color: #333;">
-                  <p style="margin: 15px 0; line-height: 1.6;">${processContent(content.overview.content)}</p>
+          <section class="service-overview" style="background: #ffffff; padding: 120px 40px; position: relative; overflow: hidden;">
+            <!-- Subtle background pattern -->
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.02; background-image: radial-gradient(circle at 20% 20%, #6366f1 1px, transparent 1px); background-size: 40px 40px;"></div>
+
+            <div style="max-width: 1100px; margin: 0 auto; position: relative; z-index: 2;">
+              <!-- Section badge -->
+              <div style="text-align: center; margin-bottom: 60px;">
+                <div style="display: inline-block; padding: 6px 20px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.12); border-radius: 30px; margin-bottom: 32px;">
+                  <span style="color: #10b981; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 1.2px;">Treatment Overview</span>
                 </div>
+
+                <h2 data-text="true" style="font-size: clamp(36px, 4vw, 48px); font-weight: 400; margin: 0; color: #1a1a1a; line-height: 1.2; letter-spacing: -0.01em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;">
+                  ${content.overview.title || 'Treatment Overview'}
+                </h2>
+
+                <!-- Elegant separator -->
+                <div style="width: 80px; height: 1px; background: linear-gradient(90deg, transparent, #10b981, transparent); margin: 40px auto;"></div>
+              </div>
+
+              <!-- Premium content card -->
+              <div style="background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); padding: 60px 50px; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(255, 255, 255, 0.1);">
+                <div data-text="true" style="font-size: 18px; line-height: 1.8; color: #374151; font-weight: 400; text-align: center; max-width: 800px; margin: 0 auto;">
+                  <div style="margin: 0;">${processContent(content.overview.content)}</div>
+                </div>
+              </div>
+
+              <!-- Subtle accent dots -->
+              <div style="display: flex; justify-content: center; margin-top: 40px; gap: 8px;">
+                <div style="width: 6px; height: 6px; background: #10b981; border-radius: 50%; opacity: 0.6;"></div>
+                <div style="width: 6px; height: 6px; background: #10b981; border-radius: 50%; opacity: 0.4;"></div>
+                <div style="width: 6px; height: 6px; background: #10b981; border-radius: 50%; opacity: 0.2;"></div>
               </div>
             </div>
           </section>
@@ -417,29 +483,77 @@ const SimpleDragDropBuilder = () => {
         tags: ['benefits', 'features', 'advantages'],
         instanceId: `${benefitsId}-${Date.now()}`,
         component: `
-          <section class="service-benefits" style="background: white; padding: 80px 20px;">
-            <div style="max-width: 1200px; margin: 0 auto;">
-              <h2 data-text="true" style="font-size: 36px; font-weight: bold; text-align: center; margin-bottom: 20px; color: #1976d2;">
-                ${content.benefits.title || 'Benefits'}
-              </h2>
-              ${content.benefits.introduction ? `
-                <p data-text="true" style="font-size: 18px; text-align: center; margin-bottom: 60px; color: #666; max-width: 800px; margin-left: auto; margin-right: auto;">
-                  ${content.benefits.introduction}
-                </p>
-              ` : ''}
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px;">
+          <section class="service-benefits" style="background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%); padding: 120px 40px; position: relative; overflow: hidden;">
+            <!-- Elegant background elements -->
+            <div style="position: absolute; top: -100px; right: -100px; width: 300px; height: 300px; background: radial-gradient(circle, rgba(234, 179, 8, 0.03) 0%, transparent 70%); border-radius: 50%;"></div>
+            <div style="position: absolute; bottom: -150px; left: -150px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(234, 179, 8, 0.02) 0%, transparent 70%); border-radius: 50%;"></div>
+
+            <div style="max-width: 1300px; margin: 0 auto; position: relative; z-index: 2;">
+              <!-- Premium section header -->
+              <div style="text-align: center; margin-bottom: 80px;">
+                <div style="display: inline-block; padding: 6px 20px; background: rgba(234, 179, 8, 0.08); border: 1px solid rgba(234, 179, 8, 0.12); border-radius: 30px; margin-bottom: 32px;">
+                  <span style="color: #eab308; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 1.2px;">Treatment Benefits</span>
+                </div>
+
+                <h2 data-text="true" style="font-size: clamp(36px, 4vw, 48px); font-weight: 400; margin: 0; color: #1a1a1a; line-height: 1.2; letter-spacing: -0.01em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;">
+                  ${content.benefits.title || 'Key Benefits'}
+                </h2>
+
+                ${content.benefits.introduction ? `
+                  <div style="width: 80px; height: 1px; background: linear-gradient(90deg, transparent, #eab308, transparent); margin: 40px auto 30px;"></div>
+                  <p data-text="true" style="font-size: 18px; font-weight: 400; margin: 0; color: #6b7280; max-width: 700px; margin-left: auto; margin-right: auto; line-height: 1.6;">
+                    ${content.benefits.introduction}
+                  </p>
+                ` : ''}
+              </div>
+
+              <!-- Premium benefits grid -->
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 32px;">
                 ${content.benefits.list.map((benefit, index) => `
-                  <div style="background: #f8f9fa; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transition: transform 0.3s ease;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
-                    <div style="display: flex; align-items: flex-start; gap: 20px;">
-                      <div style="font-size: 32px; line-height: 1; margin-top: 5px;">
+                  <div style="
+                    background: rgba(255, 255, 255, 0.8);
+                    backdrop-filter: blur(20px);
+                    padding: 40px 36px;
+                    border-radius: 20px;
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(255, 255, 255, 0.1);
+                    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                    position: relative;
+                    overflow: hidden;
+                  " onmouseover="
+                    this.style.transform = 'translateY(-8px)';
+                    this.style.boxShadow = '0 20px 60px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.15)';
+                  " onmouseout="
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = '0 10px 40px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(255, 255, 255, 0.1)';
+                  ">
+                    <!-- Subtle top accent -->
+                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, rgba(234, 179, 8, 0.6), rgba(234, 179, 8, 0.2));"></div>
+
+                    <div style="display: flex; align-items: flex-start; gap: 24px;">
+                      <!-- Minimalist icon container -->
+                      <div style="
+                        flex-shrink: 0;
+                        width: 56px;
+                        height: 56px;
+                        background: linear-gradient(135deg, rgba(234, 179, 8, 0.1), rgba(234, 179, 8, 0.05));
+                        border: 1px solid rgba(234, 179, 8, 0.1);
+                        border-radius: 16px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 24px;
+                        margin-top: 4px;
+                      ">
                         ${getIconForBenefit(benefit.title)}
                       </div>
+
                       <div style="flex: 1;">
-                        <h3 data-text="true" style="font-size: 20px; font-weight: bold; margin: 0 0 15px 0; color: #1976d2;">
+                        <h3 data-text="true" style="font-size: 20px; font-weight: 600; margin: 0 0 16px 0; color: #1a1a1a; line-height: 1.3; letter-spacing: -0.005em;">
                           ${benefit.title}
                         </h3>
-                        <p data-text="true" style="font-size: 15px; line-height: 1.6; color: #333; margin: 0;">
-                          ${benefit.description.replace(/\*\*/g, '')}
+                        <p data-text="true" style="font-size: 16px; line-height: 1.7; color: #4b5563; margin: 0; font-weight: 400;">
+                          ${(benefit.description || benefit.content || '').replace(/\*\*/g, '')}
                         </p>
                       </div>
                     </div>
@@ -474,33 +588,105 @@ const SimpleDragDropBuilder = () => {
         tags: ['procedure', 'steps', 'process'],
         instanceId: `${procedureId}-${Date.now()}`,
         component: `
-          <section class="service-procedure" style="background: #f8f9fa; padding: 80px 20px;">
-            <div style="max-width: 1000px; margin: 0 auto;">
-              <h2 data-text="true" style="font-size: 36px; font-weight: bold; text-align: center; margin-bottom: 20px; color: #1976d2;">
-                ${content.procedure.title || 'The Procedure'}
-              </h2>
-              ${content.procedure.introduction ? `
-                <p data-text="true" style="font-size: 18px; text-align: center; margin-bottom: 60px; color: #666; max-width: 700px; margin-left: auto; margin-right: auto;">
-                  ${content.procedure.introduction}
-                </p>
-              ` : ''}
-              <div style="position: relative;">
+          <section class="service-procedure" style="background: #ffffff; padding: 120px 40px; position: relative; overflow: hidden;">
+            <!-- Elegant background elements -->
+            <div style="position: absolute; top: -120px; left: -120px; width: 350px; height: 350px; background: radial-gradient(circle, rgba(79, 70, 229, 0.03) 0%, transparent 70%); border-radius: 50%;"></div>
+            <div style="position: absolute; bottom: -100px; right: -100px; width: 280px; height: 280px; background: radial-gradient(circle, rgba(79, 70, 229, 0.02) 0%, transparent 70%); border-radius: 50%;"></div>
+
+            <div style="max-width: 1200px; margin: 0 auto; position: relative; z-index: 2;">
+              <!-- Premium section header -->
+              <div style="text-align: center; margin-bottom: 80px;">
+                <div style="display: inline-block; padding: 6px 20px; background: rgba(79, 70, 229, 0.08); border: 1px solid rgba(79, 70, 229, 0.12); border-radius: 30px; margin-bottom: 32px;">
+                  <span style="color: #4f46e5; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 1.2px;">Treatment Process</span>
+                </div>
+
+                <h2 data-text="true" style="font-size: clamp(36px, 4vw, 48px); font-weight: 400; margin: 0; color: #1a1a1a; line-height: 1.2; letter-spacing: -0.01em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;">
+                  ${content.procedure.title || 'Treatment Process'}
+                </h2>
+
+                ${content.procedure.introduction ? `
+                  <div style="width: 80px; height: 1px; background: linear-gradient(90deg, transparent, #4f46e5, transparent); margin: 40px auto 30px;"></div>
+                  <p data-text="true" style="font-size: 18px; font-weight: 400; margin: 0; color: #6b7280; max-width: 700px; margin-left: auto; margin-right: auto; line-height: 1.6;">
+                    ${content.procedure.introduction}
+                  </p>
+                ` : ''}
+              </div>
+
+              <!-- Premium procedure timeline -->
+              <div style="position: relative; max-width: 900px; margin: 0 auto;">
+                <!-- Central timeline line -->
+                <div style="position: absolute; left: 50%; top: 80px; bottom: 80px; width: 1px; background: linear-gradient(180deg, rgba(79, 70, 229, 0.2), rgba(79, 70, 229, 0.6), rgba(79, 70, 229, 0.2)); transform: translateX(-50%); z-index: 1;"></div>
+
                 ${content.procedure.steps.map((step, index) => `
-                  <div style="display: flex; align-items: flex-start; margin-bottom: 40px; position: relative;">
-                    <div style="flex-shrink: 0; width: 60px; height: 60px; background: #1976d2; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; margin-right: 30px; z-index: 2;">
-                      ${step.stepNumber || index + 1}
-                    </div>
-                    ${index < content.procedure.steps.length - 1 ? `
-                      <div style="position: absolute; left: 29px; top: 60px; width: 2px; height: 40px; background: #e0e0e0; z-index: 1;"></div>
-                    ` : ''}
-                    <div style="flex: 1; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
-                      <h3 data-text="true" style="font-size: 22px; font-weight: bold; margin: 0 0 15px 0; color: #1976d2;">
+                  <div style="
+                    display: flex;
+                    align-items: center;
+                    margin-bottom: ${index === content.procedure.steps.length - 1 ? '0' : '60px'};
+                    position: relative;
+                    ${index % 2 === 0 ? 'flex-direction: row;' : 'flex-direction: row-reverse;'}
+                  ">
+                    <!-- Step content card -->
+                    <div style="
+                      flex: 1;
+                      background: rgba(255, 255, 255, 0.8);
+                      backdrop-filter: blur(20px);
+                      padding: 40px 36px;
+                      border-radius: 20px;
+                      border: 1px solid rgba(255, 255, 255, 0.2);
+                      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(255, 255, 255, 0.1);
+                      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                      ${index % 2 === 0 ? 'margin-right: 60px;' : 'margin-left: 60px;'}
+                      max-width: 400px;
+                    " onmouseover="
+                      this.style.transform = 'translateY(-8px)';
+                      this.style.boxShadow = '0 20px 60px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.15)';
+                    " onmouseout="
+                      this.style.transform = 'translateY(0)';
+                      this.style.boxShadow = '0 10px 40px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(255, 255, 255, 0.1)';
+                    ">
+                      <!-- Step number badge -->
+                      <div style="
+                        display: inline-block;
+                        padding: 4px 12px;
+                        background: rgba(79, 70, 229, 0.1);
+                        border: 1px solid rgba(79, 70, 229, 0.15);
+                        border-radius: 20px;
+                        margin-bottom: 20px;
+                      ">
+                        <span style="color: #4f46e5; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">Step ${step.stepNumber || index + 1}</span>
+                      </div>
+
+                      <h3 data-text="true" style="font-size: 22px; font-weight: 600; margin: 0 0 16px 0; color: #1a1a1a; line-height: 1.3; letter-spacing: -0.005em;">
                         ${step.title}
                       </h3>
-                      <p data-text="true" style="font-size: 16px; line-height: 1.6; color: #333; margin: 0;">
-                        ${step.description.replace(/\*\*/g, '')}
+                      <p data-text="true" style="font-size: 16px; line-height: 1.7; color: #4b5563; margin: 0; font-weight: 400;">
+                        ${(step.description || step.content || '').replace(/\*\*/g, '')}
                       </p>
                     </div>
+
+                    <!-- Central step number circle -->
+                    <div style="
+                      flex-shrink: 0;
+                      width: 64px;
+                      height: 64px;
+                      background: linear-gradient(135deg, #4f46e5, #3730a3);
+                      border: 4px solid #ffffff;
+                      border-radius: 50%;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      font-size: 22px;
+                      font-weight: 700;
+                      color: white;
+                      position: relative;
+                      z-index: 3;
+                      box-shadow: 0 8px 25px rgba(79, 70, 229, 0.25);
+                    ">
+                      ${step.stepNumber || index + 1}
+                    </div>
+
+                    <!-- Spacer for opposite side -->
+                    <div style="flex: 1; max-width: 400px; ${index % 2 === 0 ? 'margin-left: 60px;' : 'margin-right: 60px;'}"></div>
                   </div>
                 `).join('')}
               </div>
@@ -536,39 +722,70 @@ const SimpleDragDropBuilder = () => {
         tags: ['faq', 'questions', 'answers'],
         instanceId: `${enhancedFaqId}-${Date.now()}`,
         component: `
-          <section class="service-faq-enhanced" style="background: white; padding: 80px 20px;">
-            <div style="max-width: 900px; margin: 0 auto;">
-              <h2 data-text="true" style="font-size: 36px; font-weight: bold; text-align: center; margin-bottom: 20px; color: #1976d2;">
-                ${content.faq.title || 'Frequently Asked Questions'}
-              </h2>
-              ${content.faq.introduction ? `
-                <p data-text="true" style="font-size: 18px; text-align: center; margin-bottom: 60px; color: #666; max-width: 700px; margin-left: auto; margin-right: auto;">
-                  ${content.faq.introduction}
-                </p>
-              ` : ''}
-              <div>
+          <section class="service-faq-enhanced" style="background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%); padding: 120px 20px; position: relative; overflow: hidden;">
+            <!-- Premium background elements -->
+            <div style="position: absolute; top: -100px; right: -100px; width: 300px; height: 300px; background: radial-gradient(circle, rgba(156, 39, 176, 0.04) 0%, transparent 70%); border-radius: 50%;"></div>
+            <div style="position: absolute; bottom: -80px; left: -80px; width: 250px; height: 250px; background: radial-gradient(circle, rgba(156, 39, 176, 0.02) 0%, transparent 70%); border-radius: 50%;"></div>
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; height: 600px; background: linear-gradient(45deg, rgba(156, 39, 176, 0.01) 0%, transparent 50%); border-radius: 50%; z-index: 0;"></div>
+
+            <div style="max-width: 1000px; margin: 0 auto; position: relative; z-index: 2;">
+              <!-- Premium section header -->
+              <div style="text-align: center; margin-bottom: 80px;">
+                <div style="display: inline-block; padding: 14px 32px; background: rgba(156, 39, 176, 0.08); backdrop-filter: blur(20px); border-radius: 50px; margin-bottom: 30px; border: 1px solid rgba(156, 39, 176, 0.1);">
+                  <span style="color: #7b1fa2; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px;">❓ Questions & Answers</span>
+                </div>
+                <h2 data-text="true" style="font-size: 48px; font-weight: 800; margin-bottom: 25px; background: linear-gradient(135deg, #7b1fa2, #9c27b0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-shadow: 0 4px 8px rgba(123, 31, 162, 0.1);">
+                  ${content.faq.title || 'Frequently Asked Questions'}
+                </h2>
+                ${content.faq.introduction ? `
+                  <p data-text="true" style="font-size: 20px; color: #6a1b7b; max-width: 700px; margin: 0 auto; line-height: 1.8; font-weight: 400;">
+                    ${content.faq.introduction}
+                  </p>
+                ` : ''}
+              </div>
+
+              <!-- Premium FAQ items -->
+              <div style="max-width: 900px; margin: 0 auto;">
                 ${content.faq.questions.map((faq, index) => `
-                  <div style="border: 1px solid #e0e0e0; border-radius: 12px; margin-bottom: 15px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                  <div style="background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(156, 39, 176, 0.08); border-radius: 20px; margin-bottom: 24px; overflow: hidden; box-shadow: 0 8px 32px rgba(156, 39, 176, 0.08); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 16px 48px rgba(156, 39, 176, 0.12)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 32px rgba(156, 39, 176, 0.08)'">
+                    <!-- Question number indicator -->
+                    <div style="position: absolute; top: -8px; left: 24px; width: 32px; height: 32px; background: linear-gradient(135deg, #9c27b0, #7b1fa2); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; box-shadow: 0 4px 16px rgba(156, 39, 176, 0.3);">
+                      ${index + 1}
+                    </div>
+
+                    <!-- Question button -->
                     <button
                       onclick="
                         const content = this.nextElementSibling;
                         const icon = this.querySelector('.faq-icon');
                         const isVisible = content.style.display === 'block';
+                        const wasVisible = isVisible;
                         content.style.display = isVisible ? 'none' : 'block';
                         icon.textContent = isVisible ? '+' : '−';
-                        this.style.background = isVisible ? '#f8f9fa' : '#1976d2';
-                        this.style.color = isVisible ? '#333' : 'white';
+
+                        if (!wasVisible) {
+                          this.style.background = 'linear-gradient(135deg, rgba(156, 39, 176, 0.95), rgba(123, 31, 162, 0.95))';
+                          this.style.color = 'white';
+                          this.style.backdropFilter = 'blur(20px)';
+                          content.style.animation = 'faqSlideDown 0.4s ease-out';
+                        } else {
+                          this.style.background = 'rgba(255, 255, 255, 0.9)';
+                          this.style.color = '#4a148c';
+                          this.style.backdropFilter = 'blur(20px)';
+                        }
                       "
-                      style="width: 100%; padding: 25px; background: #f8f9fa; border: none; text-align: left; cursor: pointer; font-size: 18px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; transition: all 0.3s ease; color: #333;">
-                      <span data-text="true" style="flex: 1; margin-right: 15px;">
-                        ${faq.question.replace(/\*\*/g, '')}
+                      style="width: 100%; padding: 32px 24px 32px 70px; background: rgba(255, 255, 255, 0.9); border: none; text-align: left; cursor: pointer; font-size: 18px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); color: #4a148c; backdrop-filter: blur(20px);">
+                      <span data-text="true" style="flex: 1; margin-right: 20px; line-height: 1.4;">
+                        ${(faq.question || '').replace(/\*\*/g, '')}
                       </span>
-                      <span class="faq-icon" style="font-size: 24px; font-weight: bold; line-height: 1;">+</span>
+                      <span class="faq-icon" style="font-size: 24px; font-weight: 800; line-height: 1; transition: transform 0.3s ease;">+</span>
                     </button>
-                    <div style="padding: 0; display: none; background: white;">
-                      <div style="padding: 30px; border-top: 1px solid #e0e0e0;">
-                        <div data-text="true" style="font-size: 16px; line-height: 1.8; color: #333;">
-                          ${faq.answer.replace(/\*\*/g, '').replace(/\n/g, '<br>')}
+
+                    <!-- Answer content -->
+                    <div style="padding: 0; display: none; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);">
+                      <div style="padding: 32px 24px 32px 70px; border-top: 1px solid rgba(156, 39, 176, 0.1);">
+                        <div data-text="true" style="font-size: 16px; line-height: 1.8; color: #4a148c; font-weight: 400;">
+                          ${(faq.answer || '').replace(/\*\*/g, '').replace(/\n/g, '<br>')}
                         </div>
                       </div>
                     </div>
@@ -576,6 +793,9 @@ const SimpleDragDropBuilder = () => {
                 `).join('')}
               </div>
             </div>
+
+            <!-- Premium gradient overlay -->
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(156, 39, 176, 0.1), transparent);"></div>
           </section>
         `,
         props: {
@@ -603,43 +823,87 @@ const SimpleDragDropBuilder = () => {
         tags: ['aftercare', 'recovery', 'instructions'],
         instanceId: `${enhancedAftercareId}-${Date.now()}`,
         component: `
-          <section class="service-aftercare-enhanced" style="background: #f8f9fa; padding: 80px 20px;">
-            <div style="max-width: 1000px; margin: 0 auto;">
-              <h2 data-text="true" style="font-size: 36px; font-weight: bold; text-align: center; margin-bottom: 20px; color: #1976d2;">
-                ${content.aftercare.title || 'Recovery & Aftercare'}
-              </h2>
-              ${content.aftercare.introduction ? `
-                <p data-text="true" style="font-size: 18px; text-align: center; margin-bottom: 60px; color: #666; max-width: 800px; margin-left: auto; margin-right: auto;">
-                  ${content.aftercare.introduction}
-                </p>
-              ` : ''}
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px;">
-                ${content.aftercare.instructions.map((instruction, index) => `
-                  <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
-                    <div style="display: flex; align-items: flex-start; gap: 15px;">
-                      <div style="flex-shrink: 0; width: 40px; height: 40px; background: #1976d2; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold;">
-                        ${index + 1}
-                      </div>
-                      <div style="flex: 1;">
-                        <h3 data-text="true" style="font-size: 18px; font-weight: bold; margin: 0 0 10px 0; color: #1976d2;">
-                          ${instruction.title}
-                        </h3>
-                        <p data-text="true" style="font-size: 15px; line-height: 1.6; color: #333; margin: 0;">
-                          ${instruction.description.replace(/\*\*/g, '')}
-                        </p>
-                        ${instruction.timeframe ? `
-                          <div style="margin-top: 10px; padding: 8px 12px; background: #e3f2fd; border-radius: 6px; display: inline-block;">
-                            <span style="font-size: 13px; color: #1976d2; font-weight: 600;">
-                              ${instruction.timeframe}
-                            </span>
+          <section class="service-aftercare-enhanced" style="background: linear-gradient(135deg, #f0fdff 0%, #ffffff 100%); padding: 120px 20px; position: relative; overflow: hidden;">
+            <!-- Premium background elements -->
+            <div style="position: absolute; top: -120px; left: -120px; width: 350px; height: 350px; background: radial-gradient(circle, rgba(0, 150, 136, 0.04) 0%, transparent 70%); border-radius: 50%;"></div>
+            <div style="position: absolute; bottom: -100px; right: -100px; width: 300px; height: 300px; background: radial-gradient(circle, rgba(0, 150, 136, 0.03) 0%, transparent 70%); border-radius: 50%;"></div>
+            <div style="position: absolute; top: 30%; left: 20%; width: 200px; height: 200px; background: linear-gradient(45deg, rgba(0, 150, 136, 0.02) 0%, transparent 50%); border-radius: 50%; transform: rotate(45deg);"></div>
+
+            <div style="max-width: 1200px; margin: 0 auto; position: relative; z-index: 2;">
+              <!-- Premium section header -->
+              <div style="text-align: center; margin-bottom: 80px;">
+                <div style="display: inline-block; padding: 14px 32px; background: rgba(0, 150, 136, 0.08); backdrop-filter: blur(20px); border-radius: 50px; margin-bottom: 30px; border: 1px solid rgba(0, 150, 136, 0.1);">
+                  <span style="color: #00695c; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px;">🌿 Recovery Guide</span>
+                </div>
+                <h2 data-text="true" style="font-size: 48px; font-weight: 800; margin-bottom: 25px; background: linear-gradient(135deg, #00695c, #009688); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-shadow: 0 4px 8px rgba(0, 105, 92, 0.1);">
+                  ${content.aftercare.title || 'Recovery & Aftercare'}
+                </h2>
+                ${content.aftercare.introduction ? `
+                  <p data-text="true" style="font-size: 20px; color: #00796b; max-width: 800px; margin: 0 auto; line-height: 1.8; font-weight: 400;">
+                    ${content.aftercare.introduction}
+                  </p>
+                ` : ''}
+              </div>
+
+              <!-- Premium aftercare timeline -->
+              <div style="max-width: 1000px; margin: 0 auto;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 40px;">
+                  ${content.aftercare.instructions.map((instruction, index) => `
+                    <div style="background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); padding: 40px; border-radius: 24px; box-shadow: 0 8px 32px rgba(0, 150, 136, 0.08); border: 1px solid rgba(0, 150, 136, 0.08); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 16px 48px rgba(0, 150, 136, 0.12)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 32px rgba(0, 150, 136, 0.08)'">
+                      <!-- Recovery phase indicator -->
+                      <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #009688, #00695c);"></div>
+
+                      <!-- Timeline step icon -->
+                      <div style="display: flex; align-items: flex-start; gap: 24px;">
+                        <div style="flex-shrink: 0; position: relative;">
+                          <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #009688, #00695c); color: white; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; box-shadow: 0 8px 24px rgba(0, 150, 136, 0.3);">
+                            ${index + 1}
                           </div>
-                        ` : ''}
+                          <!-- Recovery icon overlay -->
+                          <div style="position: absolute; -top: 4px; -right: 4px; width: 24px; height: 24px; background: rgba(0, 150, 136, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">
+                            🌿
+                          </div>
+                        </div>
+
+                        <div style="flex: 1; min-width: 0;">
+                          <h3 data-text="true" style="font-size: 22px; font-weight: 700; margin: 0 0 16px 0; color: #00695c; line-height: 1.3;">
+                            ${instruction.title}
+                          </h3>
+                          <p data-text="true" style="font-size: 16px; line-height: 1.8; color: #37474f; margin: 0 0 16px 0; font-weight: 400;">
+                            ${(instruction.description || instruction.content || '').replace(/\*\*/g, '')}
+                          </p>
+
+                          <!-- Time frame indicator -->
+                          ${instruction.timeframe ? `
+                            <div style="margin-top: 16px; padding: 12px 20px; background: linear-gradient(135deg, rgba(0, 150, 136, 0.08), rgba(0, 150, 136, 0.04)); backdrop-filter: blur(10px); border-radius: 16px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(0, 150, 136, 0.1);">
+                              <span style="font-size: 14px;">⏱️</span>
+                              <span style="font-size: 14px; color: #00695c; font-weight: 600; letter-spacing: 0.5px;">
+                                ${instruction.timeframe}
+                              </span>
+                            </div>
+                          ` : ''}
+                        </div>
                       </div>
+
+                      <!-- Recovery progress indicator -->
+                      <div style="position: absolute; bottom: -2px; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, transparent, rgba(0, 150, 136, 0.2), transparent);"></div>
                     </div>
-                  </div>
-                `).join('')}
+                  `).join('')}
+                </div>
+              </div>
+
+              <!-- Recovery timeline completion -->
+              <div style="text-align: center; margin-top: 60px;">
+                <div style="display: inline-flex; align-items: center; gap: 16px; padding: 20px 32px; background: rgba(0, 150, 136, 0.08); backdrop-filter: blur(20px); border-radius: 50px; border: 1px solid rgba(0, 150, 136, 0.1);">
+                  <span style="font-size: 24px;">✨</span>
+                  <span style="color: #00695c; font-weight: 600; font-size: 16px; letter-spacing: 0.5px;">Follow these steps for optimal recovery</span>
+                  <span style="font-size: 24px;">🌿</span>
+                </div>
               </div>
             </div>
+
+            <!-- Premium gradient overlay -->
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(0, 150, 136, 0.1), transparent);"></div>
           </section>
         `,
         props: {
@@ -704,6 +968,680 @@ const SimpleDragDropBuilder = () => {
         }
       });
     }
+
+    // 🆕 COMPREHENSIVE CONTENT SECTIONS (6 additional sections)
+    // These sections are from content.comprehensiveContent and provide detailed information
+
+    // 6. Symptoms Section - From API content.comprehensiveContent.symptoms
+    if (content.comprehensiveContent && content.comprehensiveContent.symptoms && content.comprehensiveContent.symptoms.bulletPoints && content.comprehensiveContent.symptoms.bulletPoints.length > 0) {
+      const symptomsId = `service-symptoms-${componentId++}`;
+
+      components.push({
+        id: symptomsId,
+        type: 'ServiceSymptoms',
+        name: `${serviceName} Symptoms`,
+        category: 'comprehensive',
+        description: `Symptoms section for ${serviceName}`,
+        tags: ['symptoms', 'signs', 'comprehensive'],
+        instanceId: `${symptomsId}-${Date.now()}`,
+        component: `
+          <section class="service-symptoms" style="background: linear-gradient(135deg, #fef7f7 0%, #ffffff 100%); padding: 120px 20px; position: relative; overflow: hidden;">
+            <!-- Enhanced minimalist background elements -->
+            <div style="position: absolute; top: -100px; right: -100px; width: 300px; height: 300px; background: radial-gradient(circle, rgba(233, 30, 99, 0.03) 0%, transparent 70%); border-radius: 50%;"></div>
+            <div style="position: absolute; bottom: -80px; left: -80px; width: 250px; height: 250px; background: radial-gradient(circle, rgba(233, 30, 99, 0.02) 0%, transparent 70%); border-radius: 50%;"></div>
+            <div style="position: absolute; top: 40%; right: 15%; width: 150px; height: 150px; background: linear-gradient(45deg, rgba(233, 30, 99, 0.01) 0%, transparent 50%); border-radius: 50%; transform: rotate(45deg);"></div>
+
+            <div style="max-width: 1200px; margin: 0 auto; position: relative; z-index: 2;">
+              <!-- Enhanced minimalist header -->
+              <div style="text-align: center; margin-bottom: 80px;">
+                <div style="display: inline-block; padding: 14px 32px; background: rgba(233, 30, 99, 0.06); backdrop-filter: blur(20px); border-radius: 50px; margin-bottom: 30px; border: 1px solid rgba(233, 30, 99, 0.08);">
+                  <span style="color: #ad1457; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px;">🩺 Warning Signs</span>
+                </div>
+                <h2 data-text="true" style="font-size: 48px; font-weight: 800; margin-bottom: 25px; background: linear-gradient(135deg, #ad1457, #e91e63); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-shadow: 0 4px 8px rgba(173, 20, 87, 0.1);">
+                  ${content.comprehensiveContent.symptoms.title || 'Signs & Symptoms'}
+                </h2>
+                <p data-text="true" style="font-size: 20px; color: #8e1538; max-width: 700px; margin: 0 auto; line-height: 1.8; font-weight: 400;">
+                  Recognize these symptoms early for better treatment outcomes
+                </p>
+              </div>
+
+              <!-- Enhanced minimalist symptom cards -->
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 32px;">
+                ${content.comprehensiveContent.symptoms.bulletPoints.map((symptom, index) => `
+                  <div style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); padding: 40px; border-radius: 24px; box-shadow: 0 8px 32px rgba(233, 30, 99, 0.08); border: 1px solid rgba(233, 30, 99, 0.06); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 16px 48px rgba(233, 30, 99, 0.12)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 32px rgba(233, 30, 99, 0.08)'">
+                    <!-- Minimalist accent line -->
+                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, #e91e63, #ad1457);"></div>
+
+                    <!-- Symptom content -->
+                    <div style="display: flex; align-items: flex-start; gap: 24px;">
+                      <!-- Enhanced minimalist icon -->
+                      <div style="flex-shrink: 0; position: relative;">
+                        <div style="width: 60px; height: 60px; background: linear-gradient(135deg, rgba(233, 30, 99, 0.1), rgba(173, 20, 87, 0.05)); backdrop-filter: blur(10px); color: #ad1457; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; box-shadow: 0 4px 16px rgba(233, 30, 99, 0.1); border: 1px solid rgba(233, 30, 99, 0.1);">
+                          ${index + 1}
+                        </div>
+                        <!-- Medical indicator -->
+                        <div style="position: absolute; -top: 8px; -right: 8px; width: 20px; height: 20px; background: rgba(233, 30, 99, 0.08); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px;">
+                          🚨
+                        </div>
+                      </div>
+
+                      <div style="flex: 1; min-width: 0;">
+                        <h3 data-text="true" style="font-size: 22px; font-weight: 700; margin: 0 0 16px 0; color: #ad1457; line-height: 1.3;">
+                          ${symptom.title}
+                        </h3>
+                        <p data-text="true" style="font-size: 16px; line-height: 1.8; color: #37474f; margin: 0; font-weight: 400;">
+                          ${(symptom.content || '').replace(/\*\*/g, '')}
+                        </p>
+                      </div>
+                    </div>
+
+                    <!-- Subtle bottom accent -->
+                    <div style="position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, rgba(233, 30, 99, 0.1), transparent);"></div>
+                  </div>
+                `).join('')}
+              </div>
+
+              <!-- Minimalist summary indicator -->
+              <div style="text-align: center; margin-top: 60px;">
+                <div style="display: inline-flex; align-items: center; gap: 16px; padding: 20px 32px; background: rgba(233, 30, 99, 0.04); backdrop-filter: blur(20px); border-radius: 50px; border: 1px solid rgba(233, 30, 99, 0.06);">
+                  <span style="font-size: 20px;">🩺</span>
+                  <span style="color: #ad1457; font-weight: 600; font-size: 16px; letter-spacing: 0.5px;">Early detection leads to better outcomes</span>
+                  <span style="font-size: 20px;">✨</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Minimalist gradient overlay -->
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(233, 30, 99, 0.08), transparent);"></div>
+          </section>
+        `,
+        props: {
+          title: content.comprehensiveContent.symptoms.title,
+          bulletPoints: content.comprehensiveContent.symptoms.bulletPoints
+        },
+        config: {
+          title: content.comprehensiveContent.symptoms.title,
+          bulletPoints: content.comprehensiveContent.symptoms.bulletPoints
+        }
+      });
+    }
+
+    // 7. Consequences Section - From API content.comprehensiveContent.consequences
+    if (content.comprehensiveContent && content.comprehensiveContent.consequences && content.comprehensiveContent.consequences.bulletPoints && content.comprehensiveContent.consequences.bulletPoints.length > 0) {
+      const consequencesId = `service-consequences-${componentId++}`;
+
+      components.push({
+        id: consequencesId,
+        type: 'ServiceConsequences',
+        name: `${serviceName} Consequences`,
+        category: 'comprehensive',
+        description: `Consequences section for ${serviceName}`,
+        tags: ['consequences', 'risks', 'comprehensive'],
+        instanceId: `${consequencesId}-${Date.now()}`,
+        component: `
+          <section class="service-consequences" style="background: linear-gradient(135deg, #fff8f5 0%, #ffffff 100%); padding: 120px 20px; position: relative; overflow: hidden;">
+            <!-- Enhanced minimalist background elements -->
+            <div style="position: absolute; top: -100px; right: -100px; width: 300px; height: 300px; background: radial-gradient(circle, rgba(255, 152, 0, 0.03) 0%, transparent 70%); border-radius: 50%;"></div>
+            <div style="position: absolute; bottom: -80px; left: -80px; width: 250px; height: 250px; background: radial-gradient(circle, rgba(255, 152, 0, 0.02) 0%, transparent 70%); border-radius: 50%;"></div>
+            <div style="position: absolute; top: 40%; left: 15%; width: 150px; height: 150px; background: linear-gradient(45deg, rgba(255, 152, 0, 0.01) 0%, transparent 50%); border-radius: 50%; transform: rotate(45deg);"></div>
+
+            <div style="max-width: 1200px; margin: 0 auto; position: relative; z-index: 2;">
+              <!-- Enhanced minimalist header -->
+              <div style="text-align: center; margin-bottom: 80px;">
+                <div style="display: inline-block; padding: 14px 32px; background: rgba(255, 152, 0, 0.06); backdrop-filter: blur(20px); border-radius: 50px; margin-bottom: 30px; border: 1px solid rgba(255, 152, 0, 0.08);">
+                  <span style="color: #e65100; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px;">⚠️ Important Risks</span>
+                </div>
+                <h2 data-text="true" style="font-size: 48px; font-weight: 800; margin-bottom: 25px; background: linear-gradient(135deg, #e65100, #ff9800); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-shadow: 0 4px 8px rgba(230, 81, 0, 0.1);">
+                  ${content.comprehensiveContent.consequences.title || 'If Left Untreated'}
+                </h2>
+                <p data-text="true" style="font-size: 20px; color: #d84315; max-width: 700px; margin: 0 auto; line-height: 1.8; font-weight: 400;">
+                  Understanding the risks of delayed treatment
+                </p>
+              </div>
+
+              <!-- Enhanced minimalist consequence cards -->
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 32px;">
+                ${content.comprehensiveContent.consequences.bulletPoints.map((consequence, index) => `
+                  <div style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); padding: 40px; border-radius: 24px; box-shadow: 0 8px 32px rgba(255, 152, 0, 0.08); border: 1px solid rgba(255, 152, 0, 0.06); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 16px 48px rgba(255, 152, 0, 0.12)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 32px rgba(255, 152, 0, 0.08)'">
+                    <!-- Minimalist accent line -->
+                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, #ff9800, #e65100);"></div>
+
+                    <!-- Consequence content -->
+                    <div style="display: flex; align-items: flex-start; gap: 24px;">
+                      <!-- Enhanced minimalist warning icon -->
+                      <div style="flex-shrink: 0; position: relative;">
+                        <div style="width: 60px; height: 60px; background: linear-gradient(135deg, rgba(255, 152, 0, 0.1), rgba(230, 81, 0, 0.05)); backdrop-filter: blur(10px); color: #e65100; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; box-shadow: 0 4px 16px rgba(255, 152, 0, 0.1); border: 1px solid rgba(255, 152, 0, 0.1);">
+                          ⚠️
+                        </div>
+                        <!-- Risk indicator -->
+                        <div style="position: absolute; -top: 8px; -right: 8px; width: 20px; height: 20px; background: rgba(255, 152, 0, 0.08); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px;">
+                          🚨
+                        </div>
+                      </div>
+
+                      <div style="flex: 1; min-width: 0;">
+                        <h3 data-text="true" style="font-size: 22px; font-weight: 700; margin: 0 0 16px 0; color: #e65100; line-height: 1.3;">
+                          ${consequence.title}
+                        </h3>
+                        <p data-text="true" style="font-size: 16px; line-height: 1.8; color: #37474f; margin: 0; font-weight: 400;">
+                          ${(consequence.content || '').replace(/\*\*/g, '')}
+                        </p>
+                      </div>
+                    </div>
+
+                    <!-- Subtle bottom accent -->
+                    <div style="position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, rgba(255, 152, 0, 0.1), transparent);"></div>
+                  </div>
+                `).join('')}
+              </div>
+
+              <!-- Minimalist prevention call-to-action -->
+              <div style="text-align: center; margin-top: 60px;">
+                <div style="display: inline-flex; align-items: center; gap: 16px; padding: 20px 32px; background: rgba(255, 152, 0, 0.04); backdrop-filter: blur(20px); border-radius: 50px; border: 1px solid rgba(255, 152, 0, 0.06);">
+                  <span style="font-size: 20px;">🛡️</span>
+                  <span style="color: #e65100; font-weight: 600; font-size: 16px; letter-spacing: 0.5px;">Prevention is better than cure</span>
+                  <span style="font-size: 20px;">⚕️</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Minimalist gradient overlay -->
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(255, 152, 0, 0.08), transparent);"></div>
+          </section>
+        `,
+        props: {
+          title: content.comprehensiveContent.consequences.title,
+          bulletPoints: content.comprehensiveContent.consequences.bulletPoints
+        },
+        config: {
+          title: content.comprehensiveContent.consequences.title,
+          bulletPoints: content.comprehensiveContent.consequences.bulletPoints
+        }
+      });
+    }
+
+    // 8. Procedure Details Section - From API content.comprehensiveContent.procedureDetails
+    if (content.comprehensiveContent && content.comprehensiveContent.procedureDetails && content.comprehensiveContent.procedureDetails.steps && content.comprehensiveContent.procedureDetails.steps.length > 0) {
+      const procedureDetailsId = `service-procedure-details-${componentId++}`;
+
+      components.push({
+        id: procedureDetailsId,
+        type: 'ServiceProcedureDetails',
+        name: `${serviceName} Detailed Procedure`,
+        category: 'comprehensive',
+        description: `Detailed procedure steps for ${serviceName}`,
+        tags: ['procedure', 'detailed', 'comprehensive'],
+        instanceId: `${procedureDetailsId}-${Date.now()}`,
+        component: `
+          <section class="service-procedure-details" style="background: linear-gradient(135deg, #f3f9ff 0%, #ffffff 100%); padding: 120px 20px; position: relative; overflow: hidden;">
+            <!-- Enhanced minimalist background elements -->
+            <div style="position: absolute; top: -120px; right: -120px; width: 350px; height: 350px; background: radial-gradient(circle, rgba(33, 150, 243, 0.03) 0%, transparent 70%); border-radius: 50%;"></div>
+            <div style="position: absolute; bottom: -100px; left: -100px; width: 300px; height: 300px; background: radial-gradient(circle, rgba(33, 150, 243, 0.02) 0%, transparent 70%); border-radius: 50%;"></div>
+            <div style="position: absolute; top: 30%; right: 20%; width: 200px; height: 200px; background: linear-gradient(45deg, rgba(33, 150, 243, 0.01) 0%, transparent 50%); border-radius: 50%; transform: rotate(45deg);"></div>
+
+            <div style="max-width: 1200px; margin: 0 auto; position: relative; z-index: 2;">
+              <!-- Enhanced minimalist header -->
+              <div style="text-align: center; margin-bottom: 80px;">
+                <div style="display: inline-block; padding: 14px 32px; background: rgba(33, 150, 243, 0.06); backdrop-filter: blur(20px); border-radius: 50px; margin-bottom: 30px; border: 1px solid rgba(33, 150, 243, 0.08);">
+                  <span style="color: #0d47a1; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px;">🔬 Detailed Process</span>
+                </div>
+                <h2 data-text="true" style="font-size: 48px; font-weight: 800; margin-bottom: 25px; background: linear-gradient(135deg, #0d47a1, #2196f3); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-shadow: 0 4px 8px rgba(13, 71, 161, 0.1);">
+                  ${content.comprehensiveContent.procedureDetails.title || 'Detailed Procedure'}
+                </h2>
+                <p data-text="true" style="font-size: 20px; color: #1565c0; max-width: 700px; margin: 0 auto; line-height: 1.8; font-weight: 400;">
+                  Step-by-step breakdown of the complete treatment process
+                </p>
+              </div>
+
+              <!-- Enhanced minimalist procedure timeline -->
+              <div style="max-width: 1000px; margin: 0 auto; position: relative;">
+                ${content.comprehensiveContent.procedureDetails.steps.map((step, index) => `
+                  <div style="display: flex; align-items: flex-start; margin-bottom: 48px; position: relative;">
+                    <!-- Enhanced minimalist step indicator -->
+                    <div style="flex-shrink: 0; position: relative; margin-right: 40px;">
+                      <div style="width: 80px; height: 80px; background: linear-gradient(135deg, rgba(33, 150, 243, 0.1), rgba(13, 71, 161, 0.05)); backdrop-filter: blur(10px); color: #0d47a1; border-radius: 24px; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 800; box-shadow: 0 8px 24px rgba(33, 150, 243, 0.1); border: 2px solid rgba(33, 150, 243, 0.1); z-index: 2;">
+                        ${step.stepNumber || index + 1}
+                      </div>
+                      <!-- Process indicator -->
+                      <div style="position: absolute; -top: 4px; -right: 4px; width: 24px; height: 24px; background: rgba(33, 150, 243, 0.08); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">
+                        🔬
+                      </div>
+                    </div>
+
+                    <!-- Timeline connector -->
+                    ${index < content.comprehensiveContent.procedureDetails.steps.length - 1 ? `
+                      <div style="position: absolute; left: 39px; top: 80px; width: 2px; height: 48px; background: linear-gradient(180deg, rgba(33, 150, 243, 0.2), rgba(33, 150, 243, 0.1)); z-index: 1;"></div>
+                    ` : ''}
+
+                    <!-- Enhanced step content card -->
+                    <div style="flex: 1; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); padding: 40px; border-radius: 24px; box-shadow: 0 8px 32px rgba(33, 150, 243, 0.08); border: 1px solid rgba(33, 150, 243, 0.06); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 16px 48px rgba(33, 150, 243, 0.12)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 32px rgba(33, 150, 243, 0.08)'">
+                      <!-- Minimalist accent line -->
+                      <div style="position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, #2196f3, #0d47a1);"></div>
+
+                      <h3 data-text="true" style="font-size: 24px; font-weight: 700; margin: 0 0 20px 0; color: #0d47a1; line-height: 1.3;">
+                        ${step.title}
+                      </h3>
+                      <p data-text="true" style="font-size: 17px; line-height: 1.8; color: #37474f; margin: 0; font-weight: 400;">
+                        ${(step.description || step.content || '').replace(/\*\*/g, '')}
+                      </p>
+
+                      <!-- Subtle step completion indicator -->
+                      <div style="position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, rgba(33, 150, 243, 0.1), transparent);"></div>
+                    </div>
+                  </div>
+                `).join('')}
+
+                <!-- Process completion indicator -->
+                <div style="text-align: center; margin-top: 60px;">
+                  <div style="display: inline-flex; align-items: center; gap: 16px; padding: 20px 32px; background: rgba(33, 150, 243, 0.04); backdrop-filter: blur(20px); border-radius: 50px; border: 1px solid rgba(33, 150, 243, 0.06);">
+                    <span style="font-size: 20px;">⚕️</span>
+                    <span style="color: #0d47a1; font-weight: 600; font-size: 16px; letter-spacing: 0.5px;">Professional treatment process</span>
+                    <span style="font-size: 20px;">✨</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Minimalist gradient overlay -->
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(33, 150, 243, 0.08), transparent);"></div>
+          </section>
+        `,
+        props: {
+          title: content.comprehensiveContent.procedureDetails.title,
+          steps: content.comprehensiveContent.procedureDetails.steps
+        },
+        config: {
+          title: content.comprehensiveContent.procedureDetails.title,
+          steps: content.comprehensiveContent.procedureDetails.steps
+        }
+      });
+    }
+
+    // 9. Detailed Benefits Section - From API content.comprehensiveContent.detailedBenefits
+    if (content.comprehensiveContent && content.comprehensiveContent.detailedBenefits && content.comprehensiveContent.detailedBenefits.bulletPoints && content.comprehensiveContent.detailedBenefits.bulletPoints.length > 0) {
+      const detailedBenefitsId = `service-detailed-benefits-${componentId++}`;
+
+      components.push({
+        id: detailedBenefitsId,
+        type: 'ServiceDetailedBenefits',
+        name: `${serviceName} Detailed Benefits`,
+        category: 'comprehensive',
+        description: `Detailed benefits section for ${serviceName}`,
+        tags: ['benefits', 'detailed', 'comprehensive'],
+        instanceId: `${detailedBenefitsId}-${Date.now()}`,
+        component: `
+          <section class="service-detailed-benefits" style="background: linear-gradient(135deg, #f1f8f1 0%, #ffffff 100%); padding: 120px 20px; position: relative; overflow: hidden;">
+            <!-- Enhanced minimalist background elements -->
+            <div style="position: absolute; top: -100px; left: -100px; width: 300px; height: 300px; background: radial-gradient(circle, rgba(76, 175, 80, 0.03) 0%, transparent 70%); border-radius: 50%;"></div>
+            <div style="position: absolute; bottom: -80px; right: -80px; width: 250px; height: 250px; background: radial-gradient(circle, rgba(76, 175, 80, 0.02) 0%, transparent 70%); border-radius: 50%;"></div>
+            <div style="position: absolute; top: 40%; right: 15%; width: 150px; height: 150px; background: linear-gradient(45deg, rgba(76, 175, 80, 0.01) 0%, transparent 50%); border-radius: 50%; transform: rotate(45deg);"></div>
+
+            <div style="max-width: 1200px; margin: 0 auto; position: relative; z-index: 2;">
+              <!-- Enhanced minimalist header -->
+              <div style="text-align: center; margin-bottom: 80px;">
+                <div style="display: inline-block; padding: 14px 32px; background: rgba(76, 175, 80, 0.06); backdrop-filter: blur(20px); border-radius: 50px; margin-bottom: 30px; border: 1px solid rgba(76, 175, 80, 0.08);">
+                  <span style="color: #1b5e20; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px;">✨ Treatment Benefits</span>
+                </div>
+                <h2 data-text="true" style="font-size: 48px; font-weight: 800; margin-bottom: 25px; background: linear-gradient(135deg, #1b5e20, #4caf50); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-shadow: 0 4px 8px rgba(27, 94, 32, 0.1);">
+                  ${content.comprehensiveContent.detailedBenefits.title || 'Treatment Benefits'}
+                </h2>
+                <p data-text="true" style="font-size: 20px; color: #2e7d32; max-width: 700px; margin: 0 auto; line-height: 1.8; font-weight: 400;">
+                  Comprehensive advantages and positive outcomes you can expect
+                </p>
+              </div>
+
+              <!-- Enhanced minimalist benefit cards -->
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 32px;">
+                ${content.comprehensiveContent.detailedBenefits.bulletPoints.map((benefit, index) => `
+                  <div style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); padding: 40px; border-radius: 24px; box-shadow: 0 8px 32px rgba(76, 175, 80, 0.08); border: 1px solid rgba(76, 175, 80, 0.06); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 16px 48px rgba(76, 175, 80, 0.12)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 32px rgba(76, 175, 80, 0.08)'">
+                    <!-- Minimalist accent line -->
+                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, #4caf50, #1b5e20);"></div>
+
+                    <!-- Benefit content -->
+                    <div style="display: flex; align-items: flex-start; gap: 24px;">
+                      <!-- Enhanced minimalist check icon -->
+                      <div style="flex-shrink: 0; position: relative;">
+                        <div style="width: 60px; height: 60px; background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(27, 94, 32, 0.05)); backdrop-filter: blur(10px); color: #1b5e20; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; box-shadow: 0 4px 16px rgba(76, 175, 80, 0.1); border: 1px solid rgba(76, 175, 80, 0.1);">
+                          ✓
+                        </div>
+                        <!-- Benefit indicator -->
+                        <div style="position: absolute; -top: 8px; -right: 8px; width: 20px; height: 20px; background: rgba(76, 175, 80, 0.08); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px;">
+                          ✨
+                        </div>
+                      </div>
+
+                      <div style="flex: 1; min-width: 0;">
+                        <h3 data-text="true" style="font-size: 22px; font-weight: 700; margin: 0 0 16px 0; color: #1b5e20; line-height: 1.3;">
+                          ${benefit.title}
+                        </h3>
+                        <p data-text="true" style="font-size: 16px; line-height: 1.8; color: #37474f; margin: 0; font-weight: 400;">
+                          ${(benefit.content || '').replace(/\*\*/g, '')}
+                        </p>
+                      </div>
+                    </div>
+
+                    <!-- Subtle bottom accent -->
+                    <div style="position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, rgba(76, 175, 80, 0.1), transparent);"></div>
+                  </div>
+                `).join('')}
+              </div>
+
+              <!-- Minimalist success indicator -->
+              <div style="text-align: center; margin-top: 60px;">
+                <div style="display: inline-flex; align-items: center; gap: 16px; padding: 20px 32px; background: rgba(76, 175, 80, 0.04); backdrop-filter: blur(20px); border-radius: 50px; border: 1px solid rgba(76, 175, 80, 0.06);">
+                  <span style="font-size: 20px;">🌟</span>
+                  <span style="color: #1b5e20; font-weight: 600; font-size: 16px; letter-spacing: 0.5px;">Experience these amazing benefits</span>
+                  <span style="font-size: 20px;">💚</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Minimalist gradient overlay -->
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(76, 175, 80, 0.08), transparent);"></div>
+          </section>
+        `,
+        props: {
+          title: content.comprehensiveContent.detailedBenefits.title,
+          bulletPoints: content.comprehensiveContent.detailedBenefits.bulletPoints
+        },
+        config: {
+          title: content.comprehensiveContent.detailedBenefits.title,
+          bulletPoints: content.comprehensiveContent.detailedBenefits.bulletPoints
+        }
+      });
+    }
+
+    // 10. Side Effects Section - From API content.comprehensiveContent.sideEffects
+    if (content.comprehensiveContent && content.comprehensiveContent.sideEffects && content.comprehensiveContent.sideEffects.bulletPoints && content.comprehensiveContent.sideEffects.bulletPoints.length > 0) {
+      const sideEffectsId = `service-side-effects-${componentId++}`;
+
+      components.push({
+        id: sideEffectsId,
+        type: 'ServiceSideEffects',
+        name: `${serviceName} Side Effects`,
+        category: 'comprehensive',
+        description: `Side effects section for ${serviceName}`,
+        tags: ['side-effects', 'risks', 'comprehensive'],
+        instanceId: `${sideEffectsId}-${Date.now()}`,
+        component: `
+          <section class="service-side-effects" style="background: linear-gradient(135deg, #f3e5f5 0%, #ce93d8 50%, #9c27b0 100%); padding: 100px 20px; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: -40px; right: -40px; width: 180px; height: 180px; background: rgba(255,255,255,0.1); border-radius: 50%; transform: rotate(45deg);"></div>
+            <div style="position: absolute; bottom: -20px; left: -20px; width: 120px; height: 120px; background: rgba(255,255,255,0.05); border-radius: 50%;"></div>
+            <div style="max-width: 1200px; margin: 0 auto; position: relative; z-index: 2;">
+              <div style="text-align: center; margin-bottom: 80px;">
+                <div style="display: inline-block; padding: 12px 30px; background: rgba(156, 39, 176, 0.15); border-radius: 50px; margin-bottom: 30px;">
+                  <span style="color: #4a148c; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">💊 Considerations</span>
+                </div>
+                <h2 data-text="true" style="font-size: 48px; font-weight: 800; margin-bottom: 25px; color: #4a148c; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">
+                  ${content.comprehensiveContent.sideEffects.title || 'Possible Side Effects'}
+                </h2>
+                <p data-text="true" style="font-size: 20px; color: #6a1b9a; max-width: 700px; margin: 0 auto; line-height: 1.6;">
+                  Important information about potential temporary effects
+                </p>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 35px;">
+                ${content.comprehensiveContent.sideEffects.bulletPoints.map((sideEffect, index) => `
+                  <div style="background: rgba(255,255,255,0.95); padding: 40px; border-radius: 20px; box-shadow: 0 20px 40px rgba(156, 39, 176, 0.15); border: 1px solid rgba(156, 39, 176, 0.1); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-10px) scale(1.02)'; this.style.boxShadow='0 30px 60px rgba(156, 39, 176, 0.25)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 20px 40px rgba(156, 39, 176, 0.15)'">
+                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 6px; background: linear-gradient(90deg, #9c27b0, #4a148c);"></div>
+                    <div style="display: flex; align-items: flex-start; gap: 20px;">
+                      <div style="flex-shrink: 0; width: 60px; height: 60px; background: linear-gradient(135deg, #9c27b0, #4a148c); color: white; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; box-shadow: 0 8px 20px rgba(156, 39, 176, 0.3);">
+                        ℹ️
+                      </div>
+                      <div style="flex: 1;">
+                        <h3 data-text="true" style="font-size: 22px; font-weight: 700; margin: 0 0 15px 0; color: #4a148c; line-height: 1.3;">
+                          ${sideEffect.title}
+                        </h3>
+                        <p data-text="true" style="font-size: 16px; line-height: 1.7; color: #4a4a4a; margin: 0;">
+                          ${(sideEffect.content || '').replace(/\*\*/g, '')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </section>
+        `,
+        props: {
+          title: content.comprehensiveContent.sideEffects.title,
+          bulletPoints: content.comprehensiveContent.sideEffects.bulletPoints
+        },
+        config: {
+          title: content.comprehensiveContent.sideEffects.title,
+          bulletPoints: content.comprehensiveContent.sideEffects.bulletPoints
+        }
+      });
+    }
+
+    // 11. Myths & Facts Section - From API content.comprehensiveContent.mythsAndFacts
+    if (content.comprehensiveContent && content.comprehensiveContent.mythsAndFacts && content.comprehensiveContent.mythsAndFacts.items && content.comprehensiveContent.mythsAndFacts.items.length > 0) {
+      const mythsAndFactsId = `service-myths-facts-${componentId++}`;
+
+      components.push({
+        id: mythsAndFactsId,
+        type: 'ServiceMythsFacts',
+        name: `${serviceName} Myths & Facts`,
+        category: 'comprehensive',
+        description: `Myths and facts section for ${serviceName}`,
+        tags: ['myths', 'facts', 'comprehensive'],
+        instanceId: `${mythsAndFactsId}-${Date.now()}`,
+        component: `
+          <section class="service-myths-facts" style="background: linear-gradient(135deg, #fbe9e7 0%, #ffab91 50%, #ff5722 100%); padding: 100px 20px; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: -60px; left: -60px; width: 220px; height: 220px; background: rgba(255,255,255,0.1); border-radius: 50%; transform: rotate(45deg);"></div>
+            <div style="position: absolute; bottom: -40px; right: -40px; width: 160px; height: 160px; background: rgba(255,255,255,0.05); border-radius: 50%;"></div>
+            <div style="max-width: 1200px; margin: 0 auto; position: relative; z-index: 2;">
+              <div style="text-align: center; margin-bottom: 80px;">
+                <div style="display: inline-block; padding: 12px 30px; background: rgba(255, 87, 34, 0.15); border-radius: 50px; margin-bottom: 30px;">
+                  <span style="color: #bf360c; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">🔍 Truth Check</span>
+                </div>
+                <h2 data-text="true" style="font-size: 48px; font-weight: 800; margin-bottom: 25px; color: #bf360c; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">
+                  ${content.comprehensiveContent.mythsAndFacts.title || 'Myths vs Facts'}
+                </h2>
+                <p data-text="true" style="font-size: 20px; color: #d84315; max-width: 700px; margin: 0 auto; line-height: 1.6;">
+                  Separating misconceptions from evidence-based truths
+                </p>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 40px;">
+                ${content.comprehensiveContent.mythsAndFacts.items.map((item, index) => `
+                  <div style="background: rgba(255,255,255,0.95); border-radius: 25px; overflow: hidden; box-shadow: 0 25px 50px rgba(255, 87, 34, 0.15); border: 1px solid rgba(255, 87, 34, 0.1); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);" onmouseover="this.style.transform='translateY(-12px)'; this.style.boxShadow='0 35px 70px rgba(255, 87, 34, 0.25)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 25px 50px rgba(255, 87, 34, 0.15)'">
+                    <!-- Myth Section -->
+                    <div style="background: linear-gradient(135deg, #ffcdd2, #ef5350); padding: 30px; position: relative;">
+                      <div style="position: absolute; top: -10px; right: -10px; width: 80px; height: 80px; background: rgba(255,255,255,0.1); border-radius: 50%; transform: rotate(45deg);"></div>
+                      <div style="display: flex; align-items: flex-start; gap: 15px; position: relative; z-index: 2;">
+                        <div style="flex-shrink: 0; width: 50px; height: 50px; background: rgba(244, 67, 54, 0.9); color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold;">
+                          ❌
+                        </div>
+                        <div style="flex: 1;">
+                          <h4 style="font-size: 16px; font-weight: 700; margin: 0 0 10px 0; color: #c62828; text-transform: uppercase; letter-spacing: 1px;">MYTH</h4>
+                          <p data-text="true" style="font-size: 17px; line-height: 1.6; color: #1a1a1a; margin: 0; font-weight: 500;">
+                            ${(item.myth || '').replace(/\*\*/g, '')}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <!-- Fact Section -->
+                    <div style="background: linear-gradient(135deg, #c8e6c9, #66bb6a); padding: 30px; position: relative;">
+                      <div style="position: absolute; top: -10px; left: -10px; width: 80px; height: 80px; background: rgba(255,255,255,0.1); border-radius: 50%; transform: rotate(45deg);"></div>
+                      <div style="display: flex; align-items: flex-start; gap: 15px; position: relative; z-index: 2;">
+                        <div style="flex-shrink: 0; width: 50px; height: 50px; background: rgba(76, 175, 80, 0.9); color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold;">
+                          ✅
+                        </div>
+                        <div style="flex: 1;">
+                          <h4 style="font-size: 16px; font-weight: 700; margin: 0 0 10px 0; color: #1b5e20; text-transform: uppercase; letter-spacing: 1px;">FACT</h4>
+                          <p data-text="true" style="font-size: 17px; line-height: 1.6; color: #1a1a1a; margin: 0; font-weight: 500;">
+                            ${(item.fact || '').replace(/\*\*/g, '')}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </section>
+        `,
+        props: {
+          title: content.comprehensiveContent.mythsAndFacts.title,
+          items: content.comprehensiveContent.mythsAndFacts.items
+        },
+        config: {
+          title: content.comprehensiveContent.mythsAndFacts.title,
+          items: content.comprehensiveContent.mythsAndFacts.items
+        }
+      });
+    }
+
+    // 12. Footer Section - Professional footer at the very end
+    const footerId = `service-footer-${componentId++}`;
+    components.push({
+      id: footerId,
+      type: 'ServiceFooter',
+      name: 'Professional Footer',
+      category: 'footer',
+      description: 'Professional dental practice footer with contact information',
+      tags: ['footer', 'contact', 'professional'],
+      instanceId: `${footerId}-${Date.now()}`,
+      component: `
+        <footer class="service-footer" style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2d30 50%, #3e3e42 100%); color: white; padding: 100px 20px 50px; position: relative; overflow: hidden;">
+          <!-- Enhanced minimalist background elements -->
+          <div style="position: absolute; top: -120px; right: -120px; width: 350px; height: 350px; background: radial-gradient(circle, rgba(255, 255, 255, 0.02) 0%, transparent 70%); border-radius: 50%;"></div>
+          <div style="position: absolute; bottom: -100px; left: -100px; width: 300px; height: 300px; background: radial-gradient(circle, rgba(255, 255, 255, 0.01) 0%, transparent 70%); border-radius: 50%;"></div>
+          <div style="position: absolute; top: 30%; left: 20%; width: 200px; height: 200px; background: linear-gradient(45deg, rgba(255, 255, 255, 0.01) 0%, transparent 50%); border-radius: 50%; transform: rotate(45deg);"></div>
+
+          <div style="max-width: 1300px; margin: 0 auto; position: relative; z-index: 2;">
+            <!-- Premium footer sections -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 60px; margin-bottom: 60px;">
+
+              <!-- Enhanced Practice Info -->
+              <div style="max-width: 350px;">
+                <div style="margin-bottom: 32px;">
+                  <h3 data-text="true" style="font-size: 28px; font-weight: 800; margin-bottom: 16px; background: linear-gradient(135deg, #ffffff, #e0e0e0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                    ${website?.name || 'Dental Practice'}
+                  </h3>
+                  <div style="width: 40px; height: 3px; background: linear-gradient(90deg, #64b5f6, #42a5f5); border-radius: 2px; margin-bottom: 24px;"></div>
+                </div>
+                <p data-text="true" style="font-size: 16px; line-height: 1.8; color: #c5c6c7; margin-bottom: 32px; font-weight: 400;">
+                  Professional dental care with modern technology and personalized treatment plans for optimal oral health and beautiful smiles.
+                </p>
+
+                <!-- Enhanced social media -->
+                <div style="display: flex; gap: 16px;">
+                  <div style="width: 48px; height: 48px; background: rgba(100, 181, 246, 0.1); backdrop-filter: blur(10px); border-radius: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; border: 1px solid rgba(100, 181, 246, 0.1);" onmouseover="this.style.background='rgba(100, 181, 246, 0.2)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(100, 181, 246, 0.1)'; this.style.transform='translateY(0)'">
+                    <span style="color: #64b5f6; font-size: 20px;">📘</span>
+                  </div>
+                  <div style="width: 48px; height: 48px; background: rgba(100, 181, 246, 0.1); backdrop-filter: blur(10px); border-radius: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; border: 1px solid rgba(100, 181, 246, 0.1);" onmouseover="this.style.background='rgba(100, 181, 246, 0.2)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(100, 181, 246, 0.1)'; this.style.transform='translateY(0)'">
+                    <span style="color: #64b5f6; font-size: 20px;">📷</span>
+                  </div>
+                  <div style="width: 48px; height: 48px; background: rgba(100, 181, 246, 0.1); backdrop-filter: blur(10px); border-radius: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; border: 1px solid rgba(100, 181, 246, 0.1);" onmouseover="this.style.background='rgba(100, 181, 246, 0.2)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(100, 181, 246, 0.1)'; this.style.transform='translateY(0)'">
+                    <span style="color: #64b5f6; font-size: 20px;">🐦</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Enhanced Contact Info -->
+              <div>
+                <h4 data-text="true" style="font-size: 22px; font-weight: 700; margin-bottom: 32px; color: #e0e0e0;">Contact Information</h4>
+                <div style="display: flex; flex-direction: column; gap: 24px;">
+                  <div style="display: flex; align-items: flex-start; gap: 16px;">
+                    <div style="width: 40px; height: 40px; background: rgba(100, 181, 246, 0.1); backdrop-filter: blur(10px); border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(100, 181, 246, 0.1);">
+                      <span style="color: #64b5f6; font-size: 18px;">📍</span>
+                    </div>
+                    <div>
+                      <p data-text="true" style="font-size: 16px; color: #c5c6c7; margin: 0; line-height: 1.6; font-weight: 400;">
+                        123 Main Street<br>
+                        Suite 100<br>
+                        Your City, State 12345
+                      </p>
+                    </div>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 16px;">
+                    <div style="width: 40px; height: 40px; background: rgba(100, 181, 246, 0.1); backdrop-filter: blur(10px); border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(100, 181, 246, 0.1);">
+                      <span style="color: #64b5f6; font-size: 18px;">📞</span>
+                    </div>
+                    <p data-text="true" style="font-size: 16px; color: #c5c6c7; margin: 0; font-weight: 500;">(555) 123-4567</p>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 16px;">
+                    <div style="width: 40px; height: 40px; background: rgba(100, 181, 246, 0.1); backdrop-filter: blur(10px); border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(100, 181, 246, 0.1);">
+                      <span style="color: #64b5f6; font-size: 18px;">✉️</span>
+                    </div>
+                    <p data-text="true" style="font-size: 16px; color: #c5c6c7; margin: 0; font-weight: 400;">info@dentalcare.com</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Enhanced Office Hours -->
+              <div>
+                <h4 data-text="true" style="font-size: 22px; font-weight: 700; margin-bottom: 32px; color: #e0e0e0;">Office Hours</h4>
+                <div style="background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); padding: 24px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.05);">
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 16px; padding: 8px 0;">
+                    <span data-text="true" style="color: #c5c6c7; font-size: 15px; font-weight: 500;">Monday - Friday</span>
+                    <span data-text="true" style="color: #e0e0e0; font-size: 15px; font-weight: 600;">8:00 AM - 6:00 PM</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 16px; padding: 8px 0;">
+                    <span data-text="true" style="color: #c5c6c7; font-size: 15px; font-weight: 500;">Saturday</span>
+                    <span data-text="true" style="color: #e0e0e0; font-size: 15px; font-weight: 600;">9:00 AM - 3:00 PM</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 20px; padding: 8px 0;">
+                    <span data-text="true" style="color: #c5c6c7; font-size: 15px; font-weight: 500;">Sunday</span>
+                    <span data-text="true" style="color: #e0e0e0; font-size: 15px; font-weight: 600;">Closed</span>
+                  </div>
+                  <div style="border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(255, 112, 67, 0.1); border-radius: 12px; border: 1px solid rgba(255, 112, 67, 0.2);">
+                      <span data-text="true" style="color: #ff7043; font-size: 15px; font-weight: 700;">🚨 Emergency</span>
+                      <span data-text="true" style="color: #ff7043; font-size: 15px; font-weight: 600;">24/7 Available</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Enhanced Quick Links -->
+              <div>
+                <h4 data-text="true" style="font-size: 22px; font-weight: 700; margin-bottom: 32px; color: #e0e0e0;">Quick Actions</h4>
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                  <a data-text="true" href="/about" style="color: #c5c6c7; text-decoration: none; font-size: 16px; padding: 12px 20px; border-radius: 12px; transition: all 0.3s ease; border: 1px solid rgba(255, 255, 255, 0.05); font-weight: 500;" onmouseover="this.style.background='rgba(100, 181, 246, 0.1)'; this.style.color='#64b5f6'; this.style.transform='translateX(8px)'" onmouseout="this.style.background='transparent'; this.style.color='#c5c6c7'; this.style.transform='translateX(0)'">→ About Our Practice</a>
+                  <a data-text="true" href="/services" style="color: #c5c6c7; text-decoration: none; font-size: 16px; padding: 12px 20px; border-radius: 12px; transition: all 0.3s ease; border: 1px solid rgba(255, 255, 255, 0.05); font-weight: 500;" onmouseover="this.style.background='rgba(100, 181, 246, 0.1)'; this.style.color='#64b5f6'; this.style.transform='translateX(8px)'" onmouseout="this.style.background='transparent'; this.style.color='#c5c6c7'; this.style.transform='translateX(0)'">→ Our Services</a>
+                  <a data-text="true" href="/appointments" style="color: #c5c6c7; text-decoration: none; font-size: 16px; padding: 12px 20px; border-radius: 12px; transition: all 0.3s ease; border: 1px solid rgba(255, 255, 255, 0.05); font-weight: 500;" onmouseover="this.style.background='rgba(100, 181, 246, 0.1)'; this.style.color='#64b5f6'; this.style.transform='translateX(8px)'" onmouseout="this.style.background='transparent'; this.style.color='#c5c6c7'; this.style.transform='translateX(0)'">→ Book Appointment</a>
+                  <a data-text="true" href="/contact" style="color: #c5c6c7; text-decoration: none; font-size: 16px; padding: 12px 20px; border-radius: 12px; transition: all 0.3s ease; border: 1px solid rgba(255, 255, 255, 0.05); font-weight: 500;" onmouseover="this.style.background='rgba(100, 181, 246, 0.1)'; this.style.color='#64b5f6'; this.style.transform='translateX(8px)'" onmouseout="this.style.background='transparent'; this.style.color='#c5c6c7'; this.style.transform='translateX(0)'">→ Contact Us</a>
+
+                  <!-- Emergency action button -->
+                  <div style="margin-top: 8px; padding: 16px 20px; background: rgba(255, 112, 67, 0.1); border-radius: 16px; border: 1px solid rgba(255, 112, 67, 0.2); cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(255, 112, 67, 0.15)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255, 112, 67, 0.1)'; this.style.transform='translateY(0)'">
+                    <span data-text="true" style="color: #ff7043; font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                      🚨 Emergency Care
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Enhanced Bottom Bar -->
+            <div style="border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 40px;">
+              <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 24px;">
+                <p data-text="true" style="font-size: 14px; color: #9e9e9e; margin: 0; font-weight: 400;">
+                  © 2024 ${website?.name || 'Dental Practice'}. All rights reserved. |
+                  <span style="color: #64b5f6; cursor: pointer;" onmouseover="this.style.color='#42a5f5'" onmouseout="this.style.color='#64b5f6'">Privacy Policy</span> |
+                  <span style="color: #64b5f6; cursor: pointer;" onmouseover="this.style.color='#42a5f5'" onmouseout="this.style.color='#64b5f6'">Terms of Service</span>
+                </p>
+                <div style="display: flex; align-items: center; gap: 16px;">
+                  <span style="font-size: 14px; color: #9e9e9e; font-weight: 500;">Powered by</span>
+                  <div style="padding: 8px 16px; background: linear-gradient(135deg, #64b5f6, #42a5f5); border-radius: 12px; box-shadow: 0 4px 12px rgba(100, 181, 246, 0.2);">
+                    <span style="font-size: 12px; color: white; font-weight: 700; letter-spacing: 0.5px;">SMART DENTAL</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Minimalist bottom accent line -->
+          <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(100, 181, 246, 0.3), transparent);"></div>
+        </footer>
+      `,
+      props: {
+        practiceName: website?.name || 'Dental Practice'
+      },
+      config: {
+        practiceName: website?.name || 'Dental Practice'
+      }
+    });
 
     return components;
   };
@@ -867,9 +1805,6 @@ const SimpleDragDropBuilder = () => {
           // Edit mode: Load by servicePageId
           servicePageResponse = await servicePageService.getServicePageForEditing(servicePageId);
         } else if (isViewMode && displayServiceSlug) {
-          // Display mode: Load by serviceSlug
-          console.log(`🔧 Loading service page for display mode: ${displayServiceSlug} on website ${websiteId}`);
-
           try {
             // Use the same API as ServicePage component
             const response = await fetch(`http://localhost:5000/api/services/public/page/${websiteId}/${displayServiceSlug}?_t=${Date.now()}`, {
@@ -903,53 +1838,27 @@ const SimpleDragDropBuilder = () => {
           return;
         }
         if (servicePageResponse.success && servicePageResponse.data && servicePageResponse.data.servicePage) {
-          console.log('🔧 Full API Response Analysis:');
-          console.log('   - servicePage:', servicePageResponse.data.servicePage);
-          console.log('   - serviceInfo:', servicePageResponse.data.serviceInfo);
-          console.log('   - currentVersionData:', servicePageResponse.data.currentVersionData);
-          console.log('   - websiteSettings:', servicePageResponse.data.websiteSettings);
-
           setServicePage(servicePageResponse.data.servicePage);
           setServiceInfo(servicePageResponse.data.serviceInfo);
           setWebsite(servicePageResponse.data.servicePage.websiteId);
 
           // Load service page components
           const currentVersionData = servicePageResponse.data.currentVersionData;
-          console.log('🔍 Component Loading Analysis:');
-          console.log('   - currentVersionData exists:', !!currentVersionData);
-          console.log('   - currentVersionData.components exists:', !!(currentVersionData?.components));
-          console.log('   - currentVersionData.components length:', currentVersionData?.components?.length || 0);
-
-          if (currentVersionData?.components) {
-            console.log('   - Components preview:', currentVersionData.components.map(c => ({
-              id: c.id,
-              name: c.name,
-              type: c.type,
-              hasComponent: !!c.component
-            })));
-          }
 
           if (currentVersionData && currentVersionData.components && currentVersionData.components.length > 0) {
-            console.log('✅ Loading SAVED components from version data');
             setCanvasComponents(currentVersionData.components);
             setNextId(prev => Math.max(prev, currentVersionData.components.length + 1));
             showSnackbar(`Loaded ${currentVersionData.components.length} saved components`, 'success');
           } else {
-            console.log('🔧 No saved components found - generating from content');
-            console.log('🔧 Generating service page components from content:', servicePageResponse.data.servicePage.content);
-            console.log('🔧 Service data:', servicePageResponse.data.serviceInfo);
-            const serviceComponents = generateServicePageComponents(
+              const serviceComponents = generateServicePageComponents(
               servicePageResponse.data.servicePage.content,
               servicePageResponse.data.serviceInfo
             );
-            console.log('✅ Generated service page components:', serviceComponents);
-            console.log(`📊 Component count: ${serviceComponents.length}`);
-            setCanvasComponents(serviceComponents);
+              setCanvasComponents(serviceComponents);
             // Update the next ID counter to avoid conflicts
             setNextId(prev => prev + serviceComponents.length);
 
             if (serviceComponents.length > 0) {
-              console.log('🎨 First component preview:', serviceComponents[0]);
               showSnackbar(`Generated ${serviceComponents.length} service page sections`, 'success');
             } else {
               console.warn('⚠️ No service page components generated');
@@ -990,7 +1899,6 @@ const SimpleDragDropBuilder = () => {
     try {
       // Skip loading full component library in service page mode
       if (isServicePageMode) {
-        console.log('🔧 Service page mode: Skipping full component library load');
         setComponents([]);
         setFilteredComponents([]);
         return;
@@ -1003,13 +1911,8 @@ const SimpleDragDropBuilder = () => {
       ...dentalWebsiteSectionsComponent
       ];
 
-      console.log('Total dental components:', dentalComponents.length);
-      console.log('First 3 components:', dentalComponents.slice(0, 3).map(c => ({ id: c.id, name: c.name, category: c.category })));
-
       setComponents(dentalComponents);
       setFilteredComponents(dentalComponents);
-
-      console.log('Components set successfully');
     } catch (error) {
       console.error('Error loading components:', error);
       showSnackbar('Error loading components, using fallback', 'warning');
@@ -1039,27 +1942,18 @@ const SimpleDragDropBuilder = () => {
         autoMappingCompleted.current = true; // Set flag to prevent multiple runs
 
         try {
-          console.log('🚀 Auto-mapping services to headers on website builder load...');
-
           // Check if we have services in database
           const serviceCount = await getWebsiteServiceCount();
           const headerComponents = canvasComponents.filter(isHeaderComponent);
-
-          console.log(`Auto-mapping status: ${serviceCount} services, ${headerComponents.length} headers`);
-
           if (serviceCount > 0) {
             if (headerComponents.length === 0) {
               // No headers exist, create a modern default header with services
-              console.log('Creating new modern header with services...');
               await createModernDefaultHeaderWithServices();
             } else {
               // Headers exist, update them with current services
-              console.log('Updating existing headers with services...');
               await syncHeadersWithDatabase();
             }
-          } else {
-            console.log('⚠️ No services found in database for auto-mapping');
-          }
+          } 
         } catch (error) {
           console.error('Error during auto-mapping:', error);
           autoMappingCompleted.current = false; // Reset on error to allow retry
@@ -1076,7 +1970,6 @@ const SimpleDragDropBuilder = () => {
   useEffect(() => {
     if (!isLoading && websiteId && !initialLoadCompleted.current) {
       initialLoadCompleted.current = true;
-      console.log('Initial load completed, ready for auto-mapping');
     }
   }, [isLoading, websiteId]);
 
@@ -1088,8 +1981,6 @@ const SimpleDragDropBuilder = () => {
   useEffect(() => {
     // Simple event handler that doesn't depend on complex functions
     const handleServiceCreated = (event) => {
-      console.log('🎉 Service created event received in builder:', event.detail);
-
       // Simple refresh approach - trigger existing functions
       setTimeout(() => {
         // Clear cache
@@ -1126,20 +2017,15 @@ const SimpleDragDropBuilder = () => {
         servicesCache.current &&
         servicesCacheTimestamp.current &&
         (now - servicesCacheTimestamp.current) < CACHE_DURATION) {
-      console.log('🚀 Using cached services data');
       return servicesCache.current;
     }
 
     try {
-      console.log('Fetching services for website:', websiteId);
-
       // First try to get service pages for this website (integrated services)
       const servicePages = await serviceService.getServicePages(websiteId, {
         isIntegrated: true,
         status: 'all' // Get both draft and published
       });
-
-      console.log('Found service pages:', servicePages);
 
       let websiteServices = [];
 
@@ -1167,8 +2053,6 @@ const SimpleDragDropBuilder = () => {
           }
         });
       } else {
-        // Try to get website-specific services instead of all services
-        console.log('No service pages found, checking website-specific services');
         try {
           // Get services that belong to this specific website
           const websiteData = await websiteService.getWebsiteById(websiteId);
@@ -1181,10 +2065,8 @@ const SimpleDragDropBuilder = () => {
               category: service.category,
               shortDescription: service.shortDescription
             }));
-            console.log('Found website-specific services:', websiteServices.length);
           } else {
             // Only use empty array if truly no services exist for this website
-            console.log('No services associated with this website');
             websiteServices = [];
           }
         } catch (fallbackError) {
@@ -1196,14 +2078,11 @@ const SimpleDragDropBuilder = () => {
       // Cache the results
       servicesCache.current = websiteServices;
       servicesCacheTimestamp.current = now;
-
-      console.log('Final processed website services (cached):', websiteServices);
       return websiteServices;
 
     } catch (error) {
       console.error('Error fetching website services:', error);
       // Return empty array instead of all services to prevent wrong service count
-      console.log('Service fetch failed, returning empty array for website-specific context');
       servicesCache.current = [];
       servicesCacheTimestamp.current = now;
       return [];
@@ -1223,7 +2102,6 @@ const SimpleDragDropBuilder = () => {
 
   // Clear services cache when data is updated
   const clearServicesCache = () => {
-    console.log('🗑️ Clearing services cache');
     servicesCache.current = null;
     servicesCacheTimestamp.current = null;
   };
@@ -1261,13 +2139,10 @@ const SimpleDragDropBuilder = () => {
   // Create a modern default header with services
   const createModernDefaultHeaderWithServices = async () => {
     try {
-      console.log('Creating modern default header with database services...');
-
       const currentWebsiteServices = await fetchWebsiteServices();
       const serviceCount = currentWebsiteServices.length;
 
       if (serviceCount === 0) {
-        console.log('No services to add to header');
         return;
       }
 
@@ -1316,7 +2191,6 @@ const SimpleDragDropBuilder = () => {
       setNextId(prev => prev + 1);
 
       showSnackbar(`✨ Modern header auto-created with ${serviceCount} services from database!`, 'success');
-      console.log('Modern header created:', modernHeader);
 
     } catch (error) {
       console.error('Error creating modern default header:', error);
@@ -1327,8 +2201,6 @@ const SimpleDragDropBuilder = () => {
   // Create 5 Modern Headers with service mapping
   const createModernHeadersWithServiceMapping = async (headerType = 'minimalist') => {
     try {
-      console.log(`Creating modern ${headerType} header with service mapping...`);
-
       const currentWebsiteServices = await fetchWebsiteServices();
       const serviceCount = currentWebsiteServices.length;
 
@@ -1396,8 +2268,6 @@ const SimpleDragDropBuilder = () => {
       const headerComponents = canvasComponents.filter(isHeaderComponent);
       const nonHeaderComponents = canvasComponents.filter(comp => !isHeaderComponent(comp));
 
-      console.log(`Removing ${headerComponents.length} existing header(s) and adding ${selectedHeader.name}...`);
-
       // Create the new modern header component
       const newModernHeader = {
         id: selectedHeader.id,
@@ -1439,13 +2309,6 @@ const SimpleDragDropBuilder = () => {
         `✨ ${selectedHeader.name} created with ${serviceCount} services!`,
         'success'
       );
-
-      console.log('Modern header created:', {
-        type: headerType,
-        servicesCount: serviceCount,
-        removedHeaders: headerComponents.length,
-        newHeader: newModernHeader.name
-      });
 
       return newModernHeader;
 
@@ -1550,22 +2413,14 @@ const SimpleDragDropBuilder = () => {
 
   // Handle automatic header updates when new services are created
   const handleServiceHeaderUpdate = async (newServices) => {
-    console.log('Auto-updating headers with new services:', newServices);
-
     // Clear service cache to ensure fresh data
     clearServiceCache();
 
     // Fetch current website services from database for validation
     const currentWebsiteServices = await fetchWebsiteServices();
     const serviceCount = currentWebsiteServices.length;
-
-    console.log(`Website ${websiteId} has ${serviceCount} services in database`);
-    console.log('Current website services:', currentWebsiteServices.map(s => ({ id: s._id, name: s.name })));
-
     // Find all header components on the canvas using improved detection
     const headerComponents = canvasComponents.filter(isHeaderComponent);
-
-    console.log('Found header components:', headerComponents.map(h => ({ id: h.id, name: h.name, category: h.category })));
 
     if (headerComponents.length === 0) {
       // No header found, create a new dynamic header with ALL website services
@@ -1690,18 +2545,6 @@ const SimpleDragDropBuilder = () => {
       if (isServicePageMode && servicePageId) {
         // Transform canvas components to structured content format
         const transformedContent = transformCanvasToContent(canvasComponents, serviceInfo || {});
-
-        console.log('🔧 Save Operation Analysis:');
-        console.log('   - servicePageId:', servicePageId);
-        console.log('   - canvasComponents count:', canvasComponents.length);
-        console.log('   - canvasComponents preview:', canvasComponents.map(c => ({
-          id: c.id,
-          name: c.name,
-          type: c.type,
-          hasComponent: !!c.component
-        })));
-        console.log('   - transformedContent:', transformedContent);
-
         // Save both components AND transformed content structure
         const saveData = {
           content: transformedContent,
@@ -1709,20 +2552,14 @@ const SimpleDragDropBuilder = () => {
           globalSettings,
           changeLog: 'Manual save from drag-drop editor - content synchronized'
         };
-        console.log('   - saveData being sent:', saveData);
 
         const saveResponse = await servicePageService.updateServicePageContent(servicePageId, saveData);
-        console.log('   - Save response:', saveResponse);
 
         // Verify save by reloading the data
         try {
-          console.log('🔄 Verifying save by reloading data...');
           const verificationResponse = await servicePageService.getServicePageForEditing(servicePageId);
           if (verificationResponse.success && verificationResponse.data) {
             const verifyVersionData = verificationResponse.data.currentVersionData;
-            console.log('   - Verification currentVersionData:', verifyVersionData);
-            console.log('   - Verification components count:', verifyVersionData?.components?.length || 0);
-
             if (verifyVersionData?.components?.length > 0) {
               console.log('✅ Components successfully saved and verified');
             } else {
@@ -1742,7 +2579,6 @@ const SimpleDragDropBuilder = () => {
               timestamp: new Date().toISOString(),
               source: 'destack_editor_save'
             });
-            console.log('Unified content synced during save');
           } catch (error) {
             console.warn('Unified content sync failed during save:', error);
             // Don't fail the save operation if unified content sync fails
@@ -1798,14 +2634,11 @@ const SimpleDragDropBuilder = () => {
         } catch (verifyError) {
           console.warn('Content verification failed, proceeding with publish:', verifyError);
         }
-
         // Publish the service page
         await servicePageService.publishServicePage(servicePageId);
         showSnackbar('Service page published and synchronized successfully!');
 
-        // Log success for debugging
-        console.log(`🚀 Service page ${servicePageId} published with synchronized content`);
-      } else {
+   } else {
         await websiteService.publishWebsite(websiteId);
         showSnackbar('Website published successfully!');
       }
@@ -2106,7 +2939,6 @@ const SimpleDragDropBuilder = () => {
   const loadTemplate = async (template) => {
     try {
       setLoadingTemplate(true);
-      console.log('Loading template:', template);
 
       // Clear existing canvas
       setCanvasComponents([]);
@@ -2114,7 +2946,6 @@ const SimpleDragDropBuilder = () => {
 
       // Load template components from layout (for dental templates) or fallback to components/sections
       const sourceComponents = template.layout || template.components || template.sections || [];
-      console.log('Source components:', sourceComponents);
 
       if (!Array.isArray(sourceComponents)) {
         console.error('sourceComponents is not an array:', sourceComponents);
@@ -2146,8 +2977,6 @@ const SimpleDragDropBuilder = () => {
           position: { x: 0, y: index * 120 }
         };
       });
-
-      console.log('Template components loaded:', templateComponents);
 
       setCanvasComponents(templateComponents);
       setNextId(templateComponents.length + 1);
@@ -3263,7 +4092,6 @@ const SimpleDragDropBuilder = () => {
             websiteId={websiteId}
             onServicesGenerated={(result) => {
               // Handle successful batch service generation
-              console.log('Batch services generated:', result);
               showSnackbar(
                 `Successfully generated ${result.successfulGenerations} of ${result.totalSelected} service pages with AI content!`,
                 'success'
@@ -3292,7 +4120,6 @@ const SimpleDragDropBuilder = () => {
             isVisible={unifiedContentSidebarVisible}
             onToggle={() => setUnifiedContentSidebarVisible(!unifiedContentSidebarVisible)}
             onSyncTriggered={(syncType) => {
-              console.log('Unified content sync triggered:', syncType);
               setSnackbar({
                 open: true,
                 message: `Content synchronized (${syncType})`,

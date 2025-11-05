@@ -287,5 +287,57 @@ export const servicePageService = {
   async saveUnifiedEditingData(servicePageId, unifiedData) {
     const response = await api.put(`/service-pages/${servicePageId}/unified-data`, unifiedData);
     return response.data;
+  },
+
+  /**
+   * Generate comprehensive dental content (11 sections) for a service page
+   */
+  async generateComprehensiveContent(servicePageId, settings = {}) {
+    const response = await api.post(`/service-pages/${servicePageId}/comprehensive-content/generate`, settings);
+    return response.data;
+  },
+
+  /**
+   * Get comprehensive content for a service page
+   */
+  async getComprehensiveContent(servicePageId) {
+    const response = await api.get(`/service-pages/${servicePageId}/comprehensive-content`);
+    return response.data;
+  },
+
+  /**
+   * Update specific section of comprehensive content
+   */
+  async updateComprehensiveContentSection(servicePageId, sectionName, updateData) {
+    const response = await api.put(`/service-pages/${servicePageId}/comprehensive-content/${sectionName}`, updateData);
+    return response.data;
+  },
+
+  /**
+   * Get all available dental services
+   */
+  async getAllServices(options = {}) {
+    const params = new URLSearchParams();
+
+    if (options.category) params.append('category', options.category);
+    if (options.search) params.append('search', options.search);
+    if (options.isActive !== undefined) params.append('isActive', options.isActive);
+    if (options.isPopular) params.append('isPopular', options.isPopular);
+    if (options.page) params.append('page', options.page);
+    if (options.limit) params.append('limit', options.limit);
+
+    const queryString = params.toString();
+    const url = `/services${queryString ? `?${queryString}` : ''}`;
+
+    const response = await api.get(url);
+    return response.data;
+  },
+
+  /**
+   * Get service categories
+   */
+  async getServiceCategories() {
+    const response = await api.get('/services/categories');
+    return response.data;
   }
 };

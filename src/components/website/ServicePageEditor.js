@@ -6,6 +6,7 @@ import ContentManager from './ContentManager';
 import AIAssistant from './AIAssistant';
 import PreviewPanel from './PreviewPanel';
 import ConflictResolution from './ConflictResolution';
+import ComprehensiveContentGenerator from './ComprehensiveContentGenerator';
 import { servicePageService } from '../../services/servicePageService';
 import UnifiedContentService from '../../services/unifiedContentService';
 
@@ -52,6 +53,7 @@ const ServicePageEditor = () => {
   const editorTabs = [
     { id: 'design', label: 'Design', icon: '🎨' },
     { id: 'content', label: 'Content', icon: '📝' },
+    { id: 'comprehensive', label: 'AI Content Generator', icon: '🚀' },
     { id: 'unified', label: 'Unified Content', icon: '🔄' },
     { id: 'ai-assistant', label: 'AI Assistant', icon: '🤖' },
     { id: 'conflicts', label: 'Conflicts', icon: '⚠️' },
@@ -282,18 +284,81 @@ const ServicePageEditor = () => {
     autoSave();
   };
 
-  const handleContentChange = (section, field, value) => {
-    setServicePage(prev => ({
-      ...prev,
-      content: {
-        ...prev.content,
-        [section]: {
-          ...prev.content[section],
-          [field]: value
+  const handleContentChange = (path, value) => {
+    setServicePage(prev => {
+      const newServicePage = { ...prev };
+
+      // Handle nested path updates (e.g., "benefits.list.0.title" or "comprehensiveContent.symptoms.bulletPoints.1.content")
+      const pathParts = path.split('.');
+      let current = newServicePage;
+
+      // Navigate to the parent object
+      for (let i = 0; i < pathParts.length - 1; i++) {
+        const part = pathParts[i];
+
+        if (part === 'content') {
+          // Ensure content object exists
+          if (!current.content) current.content = {};
+          current = current.content;
+        } else if (part === 'comprehensiveContent') {
+          // Ensure comprehensiveContent object exists
+          if (!current.content) current.content = {};
+          if (!current.content.comprehensiveContent) current.content.comprehensiveContent = {};
+          current = current.content.comprehensiveContent;
+        } else if (!isNaN(part)) {
+          // Handle array indices
+          const index = parseInt(part);
+          if (!Array.isArray(current)) {
+            current = [];
+          }
+          if (!current[index]) {
+            current[index] = {};
+          }
+          current = current[index];
+        } else {
+          // Handle object properties
+          if (!current[part]) {
+            current[part] = {};
+          }
+          current = current[part];
         }
       }
-    }));
+
+      // Set the final value
+      const finalKey = pathParts[pathParts.length - 1];
+      if (!isNaN(finalKey)) {
+        // If final key is an index, ensure we're working with an array
+        const index = parseInt(finalKey);
+        if (!Array.isArray(current)) {
+          // Convert to array if needed
+          current = [];
+        }
+        current[index] = value;
+      } else {
+        current[finalKey] = value;
+      }
+
+      return newServicePage;
+    });
     autoSave();
+  };
+
+  const handleContentSave = async () => {
+    try {
+      setSaving(true);
+
+      // Call the existing saveServicePage function which handles the comprehensive save logic
+      await saveServicePage();
+
+      // Show success feedback
+      console.log('✅ Content saved successfully');
+
+    } catch (error) {
+      console.error('❌ Error saving content:', error);
+      // Show error feedback to user
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSEOChange = (field, value) => {
@@ -483,11 +548,321 @@ const ServicePageEditor = () => {
       case 'content':
         return (
           <div className="space-y-6">
-            <h3 className="text-lg font-medium text-gray-900">Content Management</h3>
-            {/* Content editing interface would go here */}
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-gray-600">Content editing interface - Individual section editors would be implemented here</p>
+            <h3 className="text-lg font-medium text-gray-900">Content Management - All 11 Sections</h3>
+
+            {/* Root Level Sections */}
+            <div className="bg-white border rounded-lg p-6">
+              <h4 className="text-md font-semibold text-gray-800 mb-4 flex items-center">
+                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium mr-2">Root Sections</span>
+                Main Display Content (5 sections)
+              </h4>
+
+              {/* Section 1: Overview */}
+              <div className="mb-6 border-l-4 border-blue-400 pl-4">
+                <h5 className="font-medium text-gray-700 mb-2">1. Overview/Introduction</h5>
+                <textarea
+                  className="w-full p-3 border border-gray-300 rounded-md"
+                  rows="4"
+                  placeholder="Enter overview content..."
+                  value={servicePage?.content?.overview?.content || ''}
+                  onChange={(e) => handleContentChange('content.overview.content', e.target.value)}
+                />
+              </div>
+
+              {/* Section 2: Benefits */}
+              <div className="mb-6 border-l-4 border-green-400 pl-4">
+                <h5 className="font-medium text-gray-700 mb-2">2. What Treatment Entails (Benefits)</h5>
+                {servicePage?.content?.benefits?.list?.map((benefit, index) => (
+                  <div key={index} className="mb-3 p-3 bg-gray-50 rounded">
+                    <input
+                      className="w-full p-2 border border-gray-300 rounded mb-2"
+                      placeholder="Benefit title..."
+                      value={benefit.title || ''}
+                      onChange={(e) => handleContentChange(`content.benefits.list.${index}.title`, e.target.value)}
+                    />
+                    <textarea
+                      className="w-full p-2 border border-gray-300 rounded"
+                      rows="2"
+                      placeholder="Benefit description..."
+                      value={benefit.content || benefit.description || ''}
+                      onChange={(e) => handleContentChange(`content.benefits.list.${index}.content`, e.target.value)}
+                    />
+                  </div>
+                )) || <p className="text-gray-500 italic">No benefits data available</p>}
+              </div>
+
+              {/* Section 3: Procedure */}
+              <div className="mb-6 border-l-4 border-purple-400 pl-4">
+                <h5 className="font-medium text-gray-700 mb-2">3. Why Treatment Needed (Procedure)</h5>
+                {servicePage?.content?.procedure?.steps?.map((step, index) => (
+                  <div key={index} className="mb-3 p-3 bg-gray-50 rounded">
+                    <div className="flex items-center mb-2">
+                      <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium mr-2">
+                        Step {step.stepNumber || index + 1}
+                      </span>
+                      <input
+                        className="flex-1 p-2 border border-gray-300 rounded"
+                        placeholder="Step title..."
+                        value={step.title || ''}
+                        onChange={(e) => handleContentChange(`content.procedure.steps.${index}.title`, e.target.value)}
+                      />
+                    </div>
+                    <textarea
+                      className="w-full p-2 border border-gray-300 rounded"
+                      rows="2"
+                      placeholder="Step description..."
+                      value={step.description || ''}
+                      onChange={(e) => handleContentChange(`content.procedure.steps.${index}.description`, e.target.value)}
+                    />
+                  </div>
+                )) || <p className="text-gray-500 italic">No procedure data available</p>}
+              </div>
+
+              {/* Section 4: Aftercare */}
+              <div className="mb-6 border-l-4 border-green-400 pl-4">
+                <h5 className="font-medium text-gray-700 mb-2">4. Post-Treatment Care</h5>
+                {servicePage?.content?.aftercare?.instructions?.map((instruction, index) => (
+                  <div key={index} className="mb-3 p-3 bg-gray-50 rounded">
+                    <input
+                      className="w-full p-2 border border-gray-300 rounded mb-2"
+                      placeholder="Care instruction title..."
+                      value={instruction.title || ''}
+                      onChange={(e) => handleContentChange(`content.aftercare.instructions.${index}.title`, e.target.value)}
+                    />
+                    <textarea
+                      className="w-full p-2 border border-gray-300 rounded mb-2"
+                      rows="2"
+                      placeholder="Care instruction description..."
+                      value={instruction.description || instruction.content || ''}
+                      onChange={(e) => handleContentChange(`content.aftercare.instructions.${index}.description`, e.target.value)}
+                    />
+                    <input
+                      className="w-full p-2 border border-gray-300 rounded"
+                      placeholder="Timeframe (optional)..."
+                      value={instruction.timeframe || ''}
+                      onChange={(e) => handleContentChange(`content.aftercare.instructions.${index}.timeframe`, e.target.value)}
+                    />
+                  </div>
+                )) || <p className="text-gray-500 italic">No aftercare data available</p>}
+              </div>
+
+              {/* Section 5: FAQ */}
+              <div className="mb-6 border-l-4 border-yellow-400 pl-4">
+                <h5 className="font-medium text-gray-700 mb-2">5. FAQ</h5>
+                {servicePage?.content?.faq?.questions?.map((faq, index) => (
+                  <div key={index} className="mb-3 p-3 bg-gray-50 rounded">
+                    <input
+                      className="w-full p-2 border border-gray-300 rounded mb-2"
+                      placeholder="FAQ question..."
+                      value={faq.question || ''}
+                      onChange={(e) => handleContentChange(`content.faq.questions.${index}.question`, e.target.value)}
+                    />
+                    <textarea
+                      className="w-full p-2 border border-gray-300 rounded"
+                      rows="3"
+                      placeholder="FAQ answer..."
+                      value={faq.answer || ''}
+                      onChange={(e) => handleContentChange(`content.faq.questions.${index}.answer`, e.target.value)}
+                    />
+                  </div>
+                )) || <p className="text-gray-500 italic">No FAQ data available</p>}
+              </div>
             </div>
+
+            {/* Comprehensive Content Sections */}
+            <div className="bg-white border rounded-lg p-6">
+              <h4 className="text-md font-semibold text-gray-800 mb-4 flex items-center">
+                <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium mr-2">Comprehensive</span>
+                Detailed Content Sections (6 sections)
+              </h4>
+
+              {/* Section 6: Symptoms */}
+              <div className="mb-6 border-l-4 border-orange-400 pl-4">
+                <h5 className="font-medium text-gray-700 mb-2">6. Symptoms Requiring Treatment</h5>
+                {servicePage?.content?.comprehensiveContent?.symptoms?.bulletPoints?.map((symptom, index) => (
+                  <div key={index} className="mb-3 p-3 bg-orange-50 rounded">
+                    <input
+                      className="w-full p-2 border border-gray-300 rounded mb-2"
+                      placeholder="Symptom title..."
+                      value={symptom.title || ''}
+                      onChange={(e) => handleContentChange(`comprehensiveContent.symptoms.bulletPoints.${index}.title`, e.target.value)}
+                    />
+                    <textarea
+                      className="w-full p-2 border border-gray-300 rounded"
+                      rows="2"
+                      placeholder="Symptom description..."
+                      value={symptom.content || ''}
+                      onChange={(e) => handleContentChange(`comprehensiveContent.symptoms.bulletPoints.${index}.content`, e.target.value)}
+                    />
+                  </div>
+                )) || <p className="text-gray-500 italic">No symptoms data available</p>}
+              </div>
+
+              {/* Section 7: Consequences */}
+              <div className="mb-6 border-l-4 border-red-400 pl-4">
+                <h5 className="font-medium text-gray-700 mb-2">7. Consequences of Delayed Treatment</h5>
+                {servicePage?.content?.comprehensiveContent?.consequences?.bulletPoints?.map((consequence, index) => (
+                  <div key={index} className="mb-3 p-3 bg-red-50 rounded">
+                    <input
+                      className="w-full p-2 border border-gray-300 rounded mb-2"
+                      placeholder="Consequence title..."
+                      value={consequence.title || ''}
+                      onChange={(e) => handleContentChange(`comprehensiveContent.consequences.bulletPoints.${index}.title`, e.target.value)}
+                    />
+                    <textarea
+                      className="w-full p-2 border border-gray-300 rounded"
+                      rows="2"
+                      placeholder="Consequence description..."
+                      value={consequence.content || ''}
+                      onChange={(e) => handleContentChange(`comprehensiveContent.consequences.bulletPoints.${index}.content`, e.target.value)}
+                    />
+                  </div>
+                )) || <p className="text-gray-500 italic">No consequences data available</p>}
+              </div>
+
+              {/* Section 8: Procedure Details */}
+              <div className="mb-6 border-l-4 border-blue-400 pl-4">
+                <h5 className="font-medium text-gray-700 mb-2">8. Detailed Procedure Steps</h5>
+                {servicePage?.content?.comprehensiveContent?.procedureDetails?.steps?.map((step, index) => (
+                  <div key={index} className="mb-3 p-3 bg-blue-50 rounded">
+                    <div className="flex items-center mb-2">
+                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium mr-2">
+                        Step {step.stepNumber || index + 1}
+                      </span>
+                      <input
+                        className="flex-1 p-2 border border-gray-300 rounded"
+                        placeholder="Procedure step title..."
+                        value={step.title || ''}
+                        onChange={(e) => handleContentChange(`comprehensiveContent.procedureDetails.steps.${index}.title`, e.target.value)}
+                      />
+                    </div>
+                    <textarea
+                      className="w-full p-2 border border-gray-300 rounded"
+                      rows="2"
+                      placeholder="Procedure step description..."
+                      value={step.description || ''}
+                      onChange={(e) => handleContentChange(`comprehensiveContent.procedureDetails.steps.${index}.description`, e.target.value)}
+                    />
+                  </div>
+                )) || <p className="text-gray-500 italic">No procedure details available</p>}
+              </div>
+
+              {/* Section 9: Detailed Benefits */}
+              <div className="mb-6 border-l-4 border-teal-400 pl-4">
+                <h5 className="font-medium text-gray-700 mb-2">9. Detailed Treatment Benefits</h5>
+                {servicePage?.content?.comprehensiveContent?.detailedBenefits?.bulletPoints?.map((benefit, index) => (
+                  <div key={index} className="mb-3 p-3 bg-teal-50 rounded">
+                    <input
+                      className="w-full p-2 border border-gray-300 rounded mb-2"
+                      placeholder="Detailed benefit title..."
+                      value={benefit.title || ''}
+                      onChange={(e) => handleContentChange(`comprehensiveContent.detailedBenefits.bulletPoints.${index}.title`, e.target.value)}
+                    />
+                    <textarea
+                      className="w-full p-2 border border-gray-300 rounded"
+                      rows="2"
+                      placeholder="Detailed benefit description..."
+                      value={benefit.content || ''}
+                      onChange={(e) => handleContentChange(`comprehensiveContent.detailedBenefits.bulletPoints.${index}.content`, e.target.value)}
+                    />
+                  </div>
+                )) || <p className="text-gray-500 italic">No detailed benefits available</p>}
+              </div>
+
+              {/* Section 10: Side Effects */}
+              <div className="mb-6 border-l-4 border-yellow-400 pl-4">
+                <h5 className="font-medium text-gray-700 mb-2">10. Potential Side Effects</h5>
+                {servicePage?.content?.comprehensiveContent?.sideEffects?.bulletPoints?.map((effect, index) => (
+                  <div key={index} className="mb-3 p-3 bg-yellow-50 rounded">
+                    <input
+                      className="w-full p-2 border border-gray-300 rounded mb-2"
+                      placeholder="Side effect title..."
+                      value={effect.title || ''}
+                      onChange={(e) => handleContentChange(`comprehensiveContent.sideEffects.bulletPoints.${index}.title`, e.target.value)}
+                    />
+                    <textarea
+                      className="w-full p-2 border border-gray-300 rounded"
+                      rows="2"
+                      placeholder="Side effect description..."
+                      value={effect.content || ''}
+                      onChange={(e) => handleContentChange(`comprehensiveContent.sideEffects.bulletPoints.${index}.content`, e.target.value)}
+                    />
+                  </div>
+                )) || <p className="text-gray-500 italic">No side effects data available</p>}
+              </div>
+
+              {/* Section 11: Myths and Facts */}
+              <div className="mb-6 border-l-4 border-indigo-400 pl-4">
+                <h5 className="font-medium text-gray-700 mb-2">11. Myths vs Facts</h5>
+                {servicePage?.content?.comprehensiveContent?.mythsAndFacts?.items?.map((item, index) => (
+                  <div key={index} className="mb-3 p-3 bg-indigo-50 rounded">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-red-600 mb-1">Myth</label>
+                        <textarea
+                          className="w-full p-2 border border-gray-300 rounded"
+                          rows="2"
+                          placeholder="Enter myth..."
+                          value={item.myth || ''}
+                          onChange={(e) => handleContentChange(`comprehensiveContent.mythsAndFacts.items.${index}.myth`, e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-green-600 mb-1">Fact</label>
+                        <textarea
+                          className="w-full p-2 border border-gray-300 rounded"
+                          rows="2"
+                          placeholder="Enter fact..."
+                          value={item.fact || ''}
+                          onChange={(e) => handleContentChange(`comprehensiveContent.mythsAndFacts.items.${index}.fact`, e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )) || <p className="text-gray-500 italic">No myths and facts data available</p>}
+              </div>
+            </div>
+
+            {/* Save Button */}
+            <div className="flex justify-end space-x-4 pt-6">
+              <button
+                onClick={handleContentSave}
+                disabled={saving}
+                className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center"
+              >
+                {saving ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    Save All Content
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        );
+
+      case 'comprehensive':
+        return (
+          <div className="space-y-6">
+            <ComprehensiveContentGenerator
+              servicePageId={servicePageId}
+              serviceName={servicePage?.title || serviceInfo?.name || 'Dental Service'}
+              onContentGenerated={(generatedData) => {
+                // Reload service page data to reflect the new comprehensive content
+                loadServicePageData();
+                toast.success('Comprehensive content has been generated and stored!');
+              }}
+            />
           </div>
         );
 
