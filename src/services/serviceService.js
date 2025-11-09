@@ -239,7 +239,13 @@ class ServiceService {
    */
   async generateContentFromServiceData(serviceData) {
     try {
-      const response = await api.post('/services/generate-content-from-data', serviceData);
+      // Ensure generateBlogs is always included for blog generation
+      const enhancedServiceData = {
+        ...serviceData,
+        generateBlogs: true
+      };
+
+      const response = await api.post('/services/generate-content-from-data', enhancedServiceData);
 
       // Trigger header update when service content is generated (usually creates service page)
       if (response.data && (response.data.servicePage || response.data.success)) {

@@ -91,6 +91,7 @@ const AIServiceCreationDialog = ({ open, onClose, onServiceCreated, websiteId })
         generateProcedure: true,
         generateBenefits: true,
         generateAftercare: true,
+        generateBlogs:true,
         keywords: keywords.split(',').map(k => k.trim()).filter(Boolean)
       });
 

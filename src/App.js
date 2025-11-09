@@ -21,6 +21,7 @@ import ContentManager from './components/website/ContentManager';
 import AIAssistant from './components/website/AIAssistant';
 import PreviewPanel from './components/website/PreviewPanel';
 import ConflictResolution from './components/website/ConflictResolution';
+import BlogPage from './components/blog/BlogPage';
 
 function App() {
   return (
@@ -90,6 +91,11 @@ function App() {
             {/* Public Service Pages - Now using SimpleDragDropBuilder in display mode */}
             <Route path="/services/:serviceSlug" element={<SimpleDragDropBuilder />} />
             <Route path="/website/:websiteId/services/:serviceSlug" element={<SimpleDragDropBuilder />} />
+
+            {/* Blog Routes - Public */}
+            <Route path="/blog/:slug" element={<BlogPage />} />
+            <Route path="/blog/category/:category" element={<BlogPage />} />
+            <Route path="/blog/tag/:tag" element={<BlogPage />} />
 
             {/* Test Component */}
             <Route path="/test-components" element={<ComponentTest />} />

@@ -37,6 +37,7 @@ import {
 import serviceService from '../../services/serviceService';
 import websiteService from '../../services/websiteService';
 import { generateCompleteSEOPackage } from '../../utils/seoUtils';
+import BlogSection from '../blog/BlogSection';
 
 /**
  * ServicePage Component
@@ -638,6 +639,16 @@ const ServicePage = () => {
           </Grid>
         </Grid>
       </Container>
+
+      {/* Blog Section - Display 6 related blog cards */}
+      <BlogSection
+        servicePageId={servicePage._id}
+        serviceName={service.name}
+        serviceSlug={service.slug}
+        title={`Learn More About ${service.name}`}
+        maxBlogs={6}
+        showViewAll={true}
+      />
 
       {/* Final CTA Section */}
       {content.cta && (

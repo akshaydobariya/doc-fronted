@@ -106,6 +106,7 @@ const SimpleDragDropBuilder = () => {
   // Service page state (when in service page mode)
   const [servicePage, setServicePage] = useState(null);
   const [serviceInfo, setServiceInfo] = useState(null);
+  const [blogCards, setBlogCards] = useState([]);
 
   // Unified content state (for service page mode)
   const [unifiedContentSidebarVisible, setUnifiedContentSidebarVisible] = useState(false);
@@ -223,7 +224,8 @@ const SimpleDragDropBuilder = () => {
   }, [components, searchTerm, selectedCategory, selectedTags]);
 
   // Generate Destack components from service page content - Enhanced API Content Mapping
-  const generateServicePageComponents = (content, serviceData) => {
+  const generateServicePageComponents = (content, serviceData, blogCards = []) => {
+    console.log('🚀 generateServicePageComponents called with blogCards:', blogCards);
     if (!content) {
       console.warn('⚠️ No content provided for service page components generation');
       return [];
@@ -1491,7 +1493,170 @@ const SimpleDragDropBuilder = () => {
       });
     }
 
-    // 12. Footer Section - Professional footer at the very end
+    // 12. Blog Section - Related Articles (positioned after Myths & Facts)
+    console.log('🔍 Blog section check - blogCards:', blogCards, 'length:', blogCards?.length);
+    if (blogCards && blogCards.length > 0) {
+      console.log('✅ Creating blog section with', blogCards.length, 'blog cards');
+      const blogSectionId = `service-blog-${componentId++}`;
+      components.push({
+        id: blogSectionId,
+        type: 'ServiceBlogSection',
+        name: 'Related Blog Articles',
+        category: 'comprehensive',
+        description: 'Blog articles related to this service',
+        tags: ['blog', 'articles', 'content', 'comprehensive'],
+        instanceId: `${blogSectionId}-${Date.now()}`,
+        component: `
+          <section class="service-blog" style="background: linear-gradient(135deg, #f3e8ff 0%, #ddd6fe 50%, #c4b5fd 100%); padding: 100px 20px; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: -60px; right: -60px; width: 220px; height: 220px; background: rgba(255,255,255,0.1); border-radius: 50%; transform: rotate(45deg);"></div>
+            <div style="position: absolute; bottom: -40px; left: -40px; width: 160px; height: 160px; background: rgba(255,255,255,0.05); border-radius: 50%;"></div>
+            <div style="max-width: 1200px; margin: 0 auto; position: relative; z-index: 2;">
+              <div style="text-align: center; margin-bottom: 80px;">
+                <div style="display: inline-block; padding: 12px 30px; background: rgba(139, 69, 255, 0.15); border-radius: 50px; margin-bottom: 30px;">
+                  <span style="color: #6b46c1; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">📚 Related Articles</span>
+                </div>
+                <h2 data-text="true" style="font-size: 48px; font-weight: 800; margin-bottom: 25px; color: #6b46c1; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">
+                  Learn More About This Treatment
+                </h2>
+                <p data-text="true" style="font-size: 20px; color: #7c3aed; max-width: 700px; margin: 0 auto; line-height: 1.6;">
+                  Explore our comprehensive guides and expert insights
+                </p>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px;">
+                ${blogCards.map((blog, index) => `
+                  <article style="
+                    background: white;
+                    border: 1px solid rgba(0, 0, 0, 0.08);
+                    border-radius: 12px;
+                    padding: 24px;
+                    transition: all 0.3s ease;
+                    position: relative;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+                  " onmouseover="
+                    this.style.borderColor = 'rgba(139, 69, 255, 0.2)';
+                    this.style.boxShadow = '0 4px 16px rgba(139, 69, 255, 0.1)';
+                  " onmouseout="
+                    this.style.borderColor = 'rgba(0, 0, 0, 0.08)';
+                    this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.04)';
+                  ">
+
+                    <!-- Featured badge (minimal) -->
+                    ${blog.featured ? `
+                      <div style="
+                        position: absolute;
+                        top: 16px;
+                        right: 16px;
+                        width: 8px;
+                        height: 8px;
+                        background: #f59e0b;
+                        border-radius: 50%;
+                        box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+                      "></div>
+                    ` : ''}
+
+                    <!-- Content -->
+                    <div style="margin-bottom: 20px;">
+                      <h3 data-text="true" style="
+                        font-size: 20px;
+                        font-weight: 600;
+                        margin: 0 0 12px 0;
+                        color: #1a1a1a;
+                        line-height: 1.4;
+                        display: -webkit-box;
+                        -webkit-line-clamp: 2;
+                        -webkit-box-orient: vertical;
+                        overflow: hidden;
+                      ">
+                        ${blog.title}
+                      </h3>
+
+                      <p data-text="true" style="
+                        font-size: 14px;
+                        line-height: 1.5;
+                        color: #6b7280;
+                        margin: 0 0 16px 0;
+                        display: -webkit-box;
+                        -webkit-line-clamp: 2;
+                        -webkit-box-orient: vertical;
+                        overflow: hidden;
+                      ">
+                        ${blog.summary}
+                      </p>
+
+                      <!-- Metadata -->
+                      <div style="
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                        margin-bottom: 16px;
+                        font-size: 12px;
+                        color: #9ca3af;
+                      ">
+                        <span>${blog.readingTime} min read</span>
+                        <span>•</span>
+                        <span>${blog.wordCount} words</span>
+                      </div>
+                    </div>
+
+                    <!-- Read Button -->
+                    <button onclick="
+                      event.stopPropagation();
+                      window.location.href = '${blog.url}';
+                    " style="
+                      width: 100%;
+                      padding: 10px 16px;
+                      background: #6b46c1;
+                      color: white;
+                      border: none;
+                      border-radius: 8px;
+                      font-size: 14px;
+                      font-weight: 500;
+                      cursor: pointer;
+                      transition: all 0.3s ease;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      gap: 6px;
+                    " onmouseover="
+                      this.style.background = '#553c9a';
+                      this.style.transform = 'translateY(-1px)';
+                    " onmouseout="
+                      this.style.background = '#6b46c1';
+                      this.style.transform = 'translateY(0)';
+                    ">
+                      Read Article
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7 17L17 7M17 7H7M17 7V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </button>
+                  </article>
+                `).join('')}
+              </div>
+              ${blogCards.length > 3 ? `
+                <div style="text-align: center; margin-top: 60px;">
+                  <a href="/blog" style="display: inline-flex; align-items: center; gap: 8px; padding: 16px 32px; background: linear-gradient(135deg, #6b46c1, #553c9a); color: white; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 16px; transition: all 0.3s ease; box-shadow: 0 8px 25px rgba(107, 70, 193, 0.25);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 30px rgba(107, 70, 193, 0.35)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(107, 70, 193, 0.25)'">
+                    View All Articles
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </a>
+                </div>
+              ` : ''}
+            </div>
+          </section>
+        `,
+        props: {
+          title: 'Learn More About This Treatment',
+          blogs: blogCards
+        },
+        config: {
+          title: 'Learn More About This Treatment',
+          blogs: blogCards
+        }
+      });
+    }
+
+    // 13. Footer Section - Professional footer at the very end
     const footerId = `service-footer-${componentId++}`;
     components.push({
       id: footerId,
@@ -1642,6 +1807,7 @@ const SimpleDragDropBuilder = () => {
         practiceName: website?.name || 'Dental Practice'
       }
     });
+
 
     return components;
   };
@@ -1842,6 +2008,15 @@ const SimpleDragDropBuilder = () => {
           setServiceInfo(servicePageResponse.data.serviceInfo);
           setWebsite(servicePageResponse.data.servicePage.websiteId);
 
+          // Extract blog cards from API response
+          if (servicePageResponse.data.blogs) {
+            setBlogCards(servicePageResponse.data.blogs);
+            console.log(`✅ Loaded ${servicePageResponse.data.blogs.length} blog cards for service page editor`);
+          } else {
+            setBlogCards([]);
+            console.log('ℹ️ No blog cards found for this service page');
+          }
+
           // Load service page components
           const currentVersionData = servicePageResponse.data.currentVersionData;
 
@@ -1850,9 +2025,11 @@ const SimpleDragDropBuilder = () => {
             setNextId(prev => Math.max(prev, currentVersionData.components.length + 1));
             showSnackbar(`Loaded ${currentVersionData.components.length} saved components`, 'success');
           } else {
+            console.log('🔍 Generating service page components with blog cards:', servicePageResponse.data.blogs);
               const serviceComponents = generateServicePageComponents(
               servicePageResponse.data.servicePage.content,
-              servicePageResponse.data.serviceInfo
+              servicePageResponse.data.serviceInfo,
+              servicePageResponse.data.blogs || [] // Use blogs directly from API response
             );
               setCanvasComponents(serviceComponents);
             // Update the next ID counter to avoid conflicts
@@ -2617,6 +2794,13 @@ const SimpleDragDropBuilder = () => {
 
   const handlePreview = () => {
     setIsPreviewMode(!isPreviewMode);
+  };
+
+  // Handle blog card click - open blog in new tab
+  const handleBlogClick = (blog) => {
+    const blogUrl = `/blog/${blog.slug}`;
+    window.open(blogUrl, '_blank');
+    console.log(`Opening blog: ${blog.title} at ${blogUrl}`);
   };
 
   const handlePublish = async () => {
