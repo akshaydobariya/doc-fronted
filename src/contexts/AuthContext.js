@@ -8,20 +8,45 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [sessionInfo, setSessionInfo] = useState(null);
 
+  // Prevent concurrent auth checks
+  const [isCheckingAuth, setIsCheckingAuth] = useState(false);
+  const [isCheckingSession, setIsCheckingSession] = useState(false);
+
+  // Cache for session info to prevent redundant calls
+  const [sessionCache, setSessionCache] = useState({ data: null, timestamp: 0 });
+
   useEffect(() => {
     checkAuth();
-    // Set up periodic session validation
-    const sessionCheckInterval = setInterval(() => {
-      if (user) {
-        checkSessionStatus();
-      }
-    }, 5 * 60 * 1000); // Check every 5 minutes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount, checkAuth should not be a dependency to prevent loops
 
-    return () => clearInterval(sessionCheckInterval);
-  }, [user]);
+  useEffect(() => {
+    // Set up periodic session validation only when user is authenticated
+    let sessionCheckInterval;
+
+    if (user) {
+      sessionCheckInterval = setInterval(() => {
+        checkSessionStatus();
+      }, 5 * 60 * 1000); // Check every 5 minutes
+    }
+
+    return () => {
+      if (sessionCheckInterval) {
+        clearInterval(sessionCheckInterval);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]); // checkSessionStatus should not be a dependency to prevent loops
 
   const checkAuth = async () => {
+    // Prevent concurrent auth checks
+    if (isCheckingAuth) {
+      console.log('🔄 Auth check already in progress, skipping...');
+      return false;
+    }
+
     try {
+      setIsCheckingAuth(true);
       console.log('🔍 Checking authentication status...');
       const response = await api.get('auth/current-user');
 
@@ -30,8 +55,17 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('user', JSON.stringify(response.data.user));
         console.log('✅ Auto-login successful:', response.data.user.email, '- Role:', response.data.user.role);
 
-        // Also get session info
-        await checkSessionStatus();
+        // Only get session info if we don't have recent cached data
+        const now = Date.now();
+        const cacheAge = now - sessionCache.timestamp;
+        const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes cache
+
+        if (!sessionCache.data || cacheAge > CACHE_DURATION) {
+          await checkSessionStatus();
+        } else {
+          console.log('📦 Using cached session info');
+          setSessionInfo(sessionCache.data);
+        }
 
         return true; // Authentication successful
       }
@@ -44,6 +78,7 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         localStorage.removeItem('user');
         setSessionInfo(null);
+        setSessionCache({ data: null, timestamp: 0 });
         return false; // Authentication failed - session expired
       } else {
         // For other errors (like network issues), fallback to localStorage temporarily
@@ -64,16 +99,32 @@ export const AuthProvider = ({ children }) => {
       return false; // Authentication failed
     } finally {
       setLoading(false);
+      setIsCheckingAuth(false);
     }
   };
 
   const checkSessionStatus = async () => {
+    // Prevent concurrent session checks
+    if (isCheckingSession) {
+      console.log('🔄 Session check already in progress, skipping...');
+      return null;
+    }
+
     try {
+      setIsCheckingSession(true);
       const response = await api.get('auth/session-status');
-      setSessionInfo(response.data.sessionInfo);
+      const sessionData = response.data.sessionInfo;
+
+      setSessionInfo(sessionData);
+
+      // Update cache with new data
+      setSessionCache({
+        data: sessionData,
+        timestamp: Date.now()
+      });
 
       // Log session info for debugging
-      const { remainingTime, expiresAt } = response.data.sessionInfo;
+      const { remainingTime, expiresAt } = sessionData;
       const hours = Math.floor(remainingTime / 60);
       const minutes = remainingTime % 60;
       console.log(`⏰ Session expires in: ${hours}h ${minutes}m (at ${new Date(expiresAt).toLocaleTimeString()})`);
@@ -91,10 +142,13 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         localStorage.removeItem('user');
         setSessionInfo(null);
+        setSessionCache({ data: null, timestamp: 0 });
         return null;
       }
       console.error('❌ Session status check failed:', error.message);
       return null;
+    } finally {
+      setIsCheckingSession(false);
     }
   };
 
