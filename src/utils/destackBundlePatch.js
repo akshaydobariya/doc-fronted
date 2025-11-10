@@ -83,6 +83,8 @@ const safeReduce = function(callback, initialValue) {
 const applyBundlePatch = () => {
   try {
     // Override Array.prototype.reduce with our safe version
+    // ESLint disable: This is a necessary patch for Destack compatibility
+    // eslint-disable-next-line no-extend-native
     Array.prototype.reduce = safeReduce;
 
     // Also set up global error handlers
@@ -152,6 +154,7 @@ const applyBundlePatch = () => {
  */
 const removeBundlePatch = () => {
   try {
+    // eslint-disable-next-line no-extend-native
     Array.prototype.reduce = ORIGINAL_METHODS.reduce;
     console.log('Destack Bundle Patch removed');
     return true;

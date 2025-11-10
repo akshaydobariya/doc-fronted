@@ -430,7 +430,7 @@ class UnifiedContentService {
         throw new Error(response.data.message || 'Failed to generate content');
       }
 
-      const { llmContent, tokensUsed, service } = response.data.data;
+      const { llmContent, tokensUsed } = response.data.data;
 
       // Transform LLM response to frontend format
       const generatedContent = {};
@@ -582,7 +582,7 @@ class UnifiedContentService {
 
       for (const line of lines) {
         if (line.match(/^\d+\./) || line.includes('Step') || line.includes('•') || line.includes('-')) {
-          const step = line.replace(/^\d+\.\s*/, '').replace(/Step\s*\d+\s*[:\-]?\s*/i, '').replace(/[•\-]\s*/, '').trim();
+          const step = line.replace(/^\d+\.\s*/, '').replace(/Step\s*\d+\s*[:=-]?\s*/i, '').replace(/[•-]\s*/, '').trim();
           if (step) {
             const parts = step.split(':');
             let title = parts[0]?.trim() || `Step ${stepNumber}`;

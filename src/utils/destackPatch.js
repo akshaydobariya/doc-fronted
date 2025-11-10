@@ -41,6 +41,7 @@ const patchedReduce = function(callback, initialValue) {
 
 // Temporarily override Array.prototype.reduce to catch the bundle error
 console.log('REACT DESTACK PATCH: Overriding Array.prototype.reduce for Destack fix');
+// eslint-disable-next-line no-extend-native
 Array.prototype.reduce = patchedReduce;
 
 // Global error handler for Destack-related errors

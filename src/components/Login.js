@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Container,
   Box,
@@ -11,9 +11,54 @@ import {
   CalendarMonth as CalendarIcon
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
-  const { login } = useAuth();
+  const { login, user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  // Auto-redirect if user is already authenticated
+  useEffect(() => {
+    if (!loading && user) {
+      console.log('🔀 User already authenticated, redirecting from login page:', user.email);
+
+      switch (user.role) {
+        case 'doctor':
+          navigate('/doctor/dashboard', { replace: true });
+          break;
+        case 'client':
+          navigate('/client/dashboard', { replace: true });
+          break;
+        default:
+          console.warn('⚠️ Unknown user role:', user.role);
+          break;
+      }
+    }
+  }, [user, loading, navigate]);
+
+  // Show loading while auth is being checked
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
+        }}
+      >
+        <Typography variant="h5" sx={{ color: 'white' }}>
+          Checking authentication...
+        </Typography>
+      </Box>
+    );
+  }
+
+  // Don't render login form if user is already authenticated
+  if (user) {
+    return null;
+  }
 
   return (
     <Box

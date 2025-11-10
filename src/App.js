@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import theme from './theme/theme';
 import Login from './components/Login';
 import AuthCallback from './components/AuthCallback';
@@ -22,6 +22,35 @@ import AIAssistant from './components/website/AIAssistant';
 import PreviewPanel from './components/website/PreviewPanel';
 import ConflictResolution from './components/website/ConflictResolution';
 import BlogPage from './components/blog/BlogPage';
+
+// Smart redirect component that redirects based on authentication status
+const SmartRedirect = () => {
+  const { user, loading } = useAuth();
+
+  // Show loading while checking authentication
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  // If user is authenticated, redirect to appropriate dashboard
+  if (user) {
+    console.log('🔀 Auto-redirecting authenticated user:', user.email, 'to', user.role, 'dashboard');
+
+    switch (user.role) {
+      case 'doctor':
+        return <Navigate to="/doctor/dashboard" replace />;
+      case 'client':
+        return <Navigate to="/client/dashboard" replace />;
+      default:
+        console.warn('⚠️ Unknown user role:', user.role);
+        return <Navigate to="/login" replace />;
+    }
+  }
+
+  // If not authenticated, redirect to login
+  console.log('🔀 No authentication found - redirecting to login');
+  return <Navigate to="/login" replace />;
+};
 
 function App() {
   return (
@@ -100,7 +129,7 @@ function App() {
             {/* Test Component */}
             <Route path="/test-components" element={<ComponentTest />} />
 
-            <Route path="/" element={<Navigate to="/login" />} />
+            <Route path="/" element={<SmartRedirect />} />
           </Routes>
         </AuthProvider>
       </Router>
