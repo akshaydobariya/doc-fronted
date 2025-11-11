@@ -2009,14 +2009,14 @@ const SimpleDragDropBuilder = () => {
           setWebsite(servicePageResponse.data.servicePage.websiteId);
 
           // Extract blog cards from API response
-          if (servicePageResponse.data.blogs) {
-            setBlogCards(servicePageResponse.data.blogs);
-            console.log(`✅ Loaded ${servicePageResponse.data.blogs.length} blog cards for service page editor`);
+          if (servicePageResponse.data.servicePage.blogs) {
+            setBlogCards(servicePageResponse.data.servicePage.blogs);
+            console.log(`✅ Loaded ${servicePageResponse.data.servicePage.blogs.length} blog cards for service page editor`);
           } else {
             setBlogCards([]);
             console.log('ℹ️ No blog cards found for this service page');
           }
-
+console.log(servicePageResponse.data.servicePage.blogs);
           // Load service page components
           const currentVersionData = servicePageResponse.data.currentVersionData;
 
@@ -2029,7 +2029,7 @@ const SimpleDragDropBuilder = () => {
               const serviceComponents = generateServicePageComponents(
               servicePageResponse.data.servicePage.content,
               servicePageResponse.data.serviceInfo,
-              servicePageResponse.data.blogs || [] // Use blogs directly from API response
+              servicePageResponse.data.servicePage.blogs 
             );
               setCanvasComponents(serviceComponents);
             // Update the next ID counter to avoid conflicts
